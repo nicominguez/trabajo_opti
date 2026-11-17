@@ -1,0 +1,19 @@
+id,nombre,duracion,categoria,asistencia,valoracion,coste,obligatoria
+1,Conferencia inaugural: IA y sociedad,1,ML,180,4.2,1200,1
+2,Conferencia de clausura: datos y etica,1,Estadistica,160,4.0,1000,1
+3,Taller de redes neuronales,3,ML,35,4.8,900,0
+4,Taller de pandas y limpieza de datos,2,Ingenieria,38,4.2,500,0
+5,Hackathon de datos,3,Ingenieria,40,4.9,1100,0
+6,Taller de inferencia bayesiana,2,Estadistica,30,4.7,550,0
+7,Charla: IA generativa,1,ML,190,3.6,1800,0
+8,Charla: Pipelines de datos en produccion,1,Ingenieria,45,3.0,350,0
+9,Charla: Series temporales,1,Estadistica,40,3.0,250,0
+10,Mesa redonda: datos y empleo,2,Ingenieria,110,3.4,900,0
+11,Charla: Visualizacion de datos,1,Estadistica,35,2.8,250,0
+12,Charla: Aprendizaje por refuerzo,1,ML,50,3.2,350,0
+13,Taller de SQL avanzado,2,Ingenieria,30,4.0,400,0
+14,Charla: Big Data con Spark,1,Ingenieria,60,3.5,450,0
+15,Charla: Contrastes y A/B testing,1,Estadistica,30,2.7,200,0
+16,Charla: Explicabilidad en ML,1,ML,85,3.6,500,0
+17,Seminario de estadistica espacial,2,Estadistica,45,3.0,350,0
+18,Charla: Etica y sesgos algoritmicos,1,ML,75,4.0,1000,0
