@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys
 
+import pandas as pd
 import streamlit as st
 
 
@@ -21,18 +22,6 @@ except DataValidationError as exc:
     st.stop()
 
 params = instance["parametros"]
-scenarios = {
-    "Personalizado": (params["w_A"], params["w_V"], params["w_N"]),
-    "Asistencia": (1.0, 0.0, 0.0),
-    "Valoracion": (0.0, 1.0, 0.0),
-    "Numero de actividades": (0.1, 0.1, 0.8),
-}
-
-scenario = str(
-    st.segmented_control("Escenario", list(scenarios), default="Personalizado")
-    or "Personalizado"
-)
-defaults = scenarios[scenario]
 
 with st.container(border=True):
     budget = st.number_input(
@@ -41,13 +30,25 @@ with st.container(border=True):
         value=float(params["presupuesto"]),
         step=100.0,
     )
-    w_a = st.slider("Peso de asistencia", 0.0, 1.0, float(defaults[0]), 0.1)
-    w_v = st.slider("Peso de valoracion", 0.0, 1.0, float(defaults[1]), 0.1)
+    w_a = st.slider(
+        "Peso de asistencia",
+        0.0,
+        1.0,
+        float(params["w_A"]),
+        0.1,
+    )
+    w_v = st.slider(
+        "Peso de valoracion",
+        0.0,
+        1.0,
+        float(params["w_V"]),
+        0.1,
+    )
     w_n = st.slider(
         "Peso de numero de actividades",
         0.0,
         1.0,
-        float(defaults[2]),
+        float(params["w_N"]),
         0.1,
     )
 
@@ -72,84 +73,79 @@ if st.button("Resolver modelo", type="primary", icon=":material/play_arrow:"):
             c4.metric("Coste", f"{result['cost']:,.0f}".replace(",", "."))
             c5.metric("Presupuesto", f"{budget:,.0f}".replace(",", "."))
 
-            activities = instance["actividades"].copy()
-            activities["estado"] = activities["id"].isin(result["selected"]).map(
-                {True: "Seleccionada", False: "Descartada"}
+            st.subheader("Calendario")
+            horizon = int(params["num_franjas"])
+            slots_per_day = int(params["franjas_por_dia"])
+            calendar = pd.DataFrame(
+                [[[] for _ in range(slots_per_day)]
+                 for _ in range(horizon // slots_per_day)],
+                index=pd.Index(
+                    [f"Dia {day}" for day in range(1, horizon // slots_per_day + 1)]
+                ),
+                columns=pd.Index([
+                    f"Franja {slot}"
+                    for slot in range(1, slots_per_day + 1)
+                ]),
+            )
+            for _, assignment in result["assignments"].iterrows():
+                day = (int(assignment["inicio"]) - 1) // slots_per_day + 1
+                for slot in range(
+                    int(assignment["inicio"]),
+                    int(assignment["fin"]) + 1,
+                ):
+                    slot_in_day = slot - (day - 1) * slots_per_day
+                    entry = (
+                        f"{assignment['nombre']} "
+                        f"[{assignment['espacio']}]"
+                    )
+                    calendar.loc[
+                        f"Dia {day}", f"Franja {slot_in_day}"
+                    ].append(entry)
+
+            calendar_options = [
+                f"{assignment['nombre']} [{assignment['espacio']}]"
+                for _, assignment in result["assignments"].iterrows()
+            ]
+            calendar_config = {
+                column: st.column_config.MultiselectColumn(
+                    column,
+                    options=calendar_options,
+                    color="primary",
+                )
+                for column in calendar.columns
+            }
+            st.dataframe(
+                calendar,
+                column_config=calendar_config,
             )
 
             st.subheader("Actividades seleccionadas")
-            selected = activities[activities["estado"] == "Seleccionada"]
+            activity_details = instance["actividades"].set_index("id")
+            selected_rows = []
+            for _, assignment in result["assignments"].iterrows():
+                activity_id = int(assignment["actividad"])
+                details = activity_details.loc[activity_id]
+                selected_rows.append({
+                    "ID": activity_id,
+                    "Actividad": assignment["nombre"],
+                    "Categoria": [str(details["categoria"])],
+                    "Duracion": int(details["duracion"]),
+                    "Asistencia": int(details["asistencia"]),
+                    "Valoracion": float(details["valoracion"]),
+                    "Coste": float(details["coste"]),
+                    "Espacio ID": assignment["espacio"],
+                    "Espacio": assignment["nombre_espacio"],
+                    "Franja inicio": int(assignment["inicio"]),
+                    "Franja fin": int(assignment["fin"]),
+                })
             st.dataframe(
-                selected[
-                    ["id", "nombre", "duracion", "asistencia", "valoracion", "coste"]
-                ].rename(
-                    columns={
-                        "id": "ID",
-                        "nombre": "Actividad",
-                        "duracion": "Duracion",
-                        "asistencia": "Asistencia",
-                        "valoracion": "Valoracion",
-                        "coste": "Coste",
-                    }
-                ),
+                pd.DataFrame(selected_rows),
                 hide_index=True,
-            )
-
-            st.subheader("Programacion por espacio y franja")
-            if result["assignments"].empty:
-                st.info("No hay actividades asignadas.")
-            else:
-                st.dataframe(
-                    result["assignments"].rename(
-                        columns={
-                            "actividad": "ID",
-                            "nombre": "Actividad",
-                            "espacio": "Espacio ID",
-                            "nombre_espacio": "Espacio",
-                            "inicio": "Franja inicio",
-                            "fin": "Franja fin",
-                        }
-                    ),
-                    hide_index=True,
-                )
-
-            st.subheader("Actividades descartadas")
-            discarded = activities[activities["estado"] == "Descartada"]
-            st.dataframe(
-                discarded[["id", "nombre", "coste"]].rename(
-                    columns={"id": "ID", "nombre": "Actividad", "coste": "Coste"}
-                ),
-                hide_index=True,
-            )
-
-            export = activities[
-                [
-                    "id",
-                    "nombre",
-                    "estado",
-                    "duracion",
-                    "asistencia",
-                    "valoracion",
-                    "coste",
-                    "obligatoria",
-                ]
-            ].rename(
-                columns={
-                    "id": "ID",
-                    "nombre": "Actividad",
-                    "estado": "Estado",
-                    "duracion": "Duracion",
-                    "asistencia": "Asistencia",
-                    "valoracion": "Valoracion",
-                    "coste": "Coste",
-                    "obligatoria": "Obligatoria",
-                }
-            )
-            st.download_button(
-                "Descargar resultados CSV",
-                data=export.to_csv(index=False).encode("utf-8"),
-                file_name="resultados_planificacion.csv",
-                mime="text/csv",
-                icon=":material/download:",
-                width="stretch",
+                column_config={
+                    "Categoria": st.column_config.MultiselectColumn(
+                        "Categoria",
+                        options=["ML", "Estadistica", "Ingenieria"],
+                        color="primary",
+                    )
+                },
             )
