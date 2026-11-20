@@ -27,7 +27,7 @@ SCENARIOS = {
 try:
     instance = load_instance()
 except DataValidationError as exc:
-    st.error(f"Error de datos: {exc}", title="No se pudo cargar la instancia")
+    st.error(f"Error de datos. No se pudo cargar la instancia: {exc}")
     st.stop()
 
 params = instance["parametros"]
@@ -76,13 +76,13 @@ if run:
 
         if result["status"] == "SolverError":
             st.error(
-                result.get("error", "No se pudo ejecutar el solver."),
-                title="Error del solver",
+                "Error del solver. "
+                + result.get("error", "No se pudo ejecutar el solver.")
             )
         elif result["status"] != "Optimal":
             st.warning(
-                "El problema es inviable con los parametros actuales.",
-                title="Instancia sin solucion",
+                "Instancia sin solucion. "
+                "El problema es inviable con los parametros actuales."
             )
         else:
             assignments = result["assignments"]
