@@ -15,6 +15,217 @@ class DataValidationError(ValueError):
     pass
 
 
+def solve_with_scipy(
+    instance: dict[str, Any],
+    budget: float,
+    weights: tuple[float, float, float],
+) -> dict[str, Any]:
+    try:
+        import numpy as np
+        from scipy.optimize import Bounds, LinearConstraint, milp
+        from scipy.sparse import lil_matrix
+    except ImportError as exc:
+        return {
+            "status": "SolverError",
+            "assignments": pd.DataFrame(),
+            "selected": [],
+            "error": f"No esta disponible SciPy: {exc}",
+        }
+
+    actividades = instance["actividades"]
+    espacios = instance["espacios"]
+    compat = instance["compat"]
+    disp_actividades = instance["disp_actividades"]
+    disp_espacios = instance["disp_espacios"]
+    incompat = instance["incompat"]
+    params = instance["parametros"]
+
+    F = params["num_franjas"]
+    slots_per_day = params["franjas_por_dia"]
+    compat_pairs = set(
+        zip(
+            compat["actividad"].astype(int),
+            compat["espacio"].astype(str),
+        )
+    )
+    activity_availability = set(
+        zip(
+            disp_actividades["actividad"].astype(int),
+            disp_actividades["franja"].astype(int),
+        )
+    )
+    space_availability = set(
+        zip(
+            disp_espacios["espacio"].astype(str),
+            disp_espacios["franja"].astype(int),
+        )
+    )
+
+    y_indices = {
+        int(row["id"]): index
+        for index, (_, row) in enumerate(actividades.iterrows())
+    }
+    objective = np.zeros(len(actividades), dtype=float)
+    A_tot = float(actividades["asistencia"].sum())
+    V_tot = float(actividades["valoracion"].sum())
+    N = len(actividades)
+    w_A, w_V, w_N = weights
+    for _, row in actividades.iterrows():
+        i = int(row["id"])
+        objective[y_indices[i]] = -(
+            w_A * float(row["asistencia"]) / A_tot
+            + w_V * float(row["valoracion"]) / V_tot
+            + w_N / N
+        )
+
+    x_keys: list[tuple[int, str, int]] = []
+    durations = {
+        int(row["id"]): int(row["duracion"])
+        for _, row in actividades.iterrows()
+    }
+    for _, activity in actividades.iterrows():
+        i = int(activity["id"])
+        duration = int(activity["duracion"])
+        attendance = float(activity["asistencia"])
+        for _, space in espacios.iterrows():
+            e = str(space["id"])
+            capacity = float(space["capacidad"])
+            for t in range(1, F + 1):
+                feasible = (i, e) in compat_pairs
+                feasible = feasible and attendance <= capacity
+                feasible = feasible and t + duration - 1 <= F
+                feasible = feasible and (
+                    (t - 1) // slots_per_day
+                    == (t + duration - 2) // slots_per_day
+                )
+                if feasible:
+                    for s in range(t, t + duration):
+                        if (i, s) not in activity_availability:
+                            feasible = False
+                        if (e, s) not in space_availability:
+                            feasible = False
+                if feasible:
+                    x_keys.append((i, e, t))
+
+    variable_count = len(actividades) + len(x_keys)
+    x_indices = {
+        key: len(actividades) + index
+        for index, key in enumerate(x_keys)
+    }
+    objective = np.pad(objective, (0, len(x_keys)))
+    integrality = np.ones(variable_count)
+    bounds = Bounds(np.zeros(variable_count), np.ones(variable_count))
+
+    rows: list[list[float]] = []
+    lower: list[float] = []
+    upper: list[float] = []
+
+    def add_constraint(coefficients: dict[int, float], lb: float, ub: float) -> None:
+        row = [0.0] * variable_count
+        for index, coefficient in coefficients.items():
+            row[index] = coefficient
+        rows.append(row)
+        lower.append(lb)
+        upper.append(ub)
+
+    for i in y_indices:
+        coefficients = {y_indices[i]: 1.0}
+        for key, x_index in x_indices.items():
+            if key[0] == i:
+                coefficients[x_index] = -1.0
+        add_constraint(coefficients, 0.0, 0.0)
+
+    for _, activity in actividades.iterrows():
+        i = int(activity["id"])
+        if int(activity["obligatoria"]) == 1:
+            add_constraint({y_indices[i]: 1.0}, 1.0, 1.0)
+
+    budget_coefficients = {
+        y_indices[int(row["id"])]: float(row["coste"])
+        for _, row in actividades.iterrows()
+    }
+    add_constraint(budget_coefficients, -np.inf, budget)
+
+    for _, space in espacios.iterrows():
+        e = str(space["id"])
+        for s in range(1, F + 1):
+            coefficients = {}
+            for (i, ee, t), x_index in x_indices.items():
+                if ee == e and t <= s <= t + durations[i] - 1:
+                    coefficients[x_index] = 1.0
+            add_constraint(coefficients, -np.inf, 1.0)
+
+    for _, pair in incompat.iterrows():
+        i = int(pair["actividad_1"])
+        j = int(pair["actividad_2"])
+        for s in range(1, F + 1):
+            coefficients = {}
+            for (activity, e, t), x_index in x_indices.items():
+                if activity == i and t <= s <= t + durations[activity] - 1:
+                    coefficients[x_index] = 1.0
+                if activity == j and t <= s <= t + durations[activity] - 1:
+                    coefficients[x_index] = 1.0
+            add_constraint(coefficients, -np.inf, 1.0)
+
+    matrix = lil_matrix(rows)
+    constraint = LinearConstraint(matrix.tocsr(), np.array(lower), np.array(upper))
+    result = milp(
+        c=objective,
+        integrality=integrality,
+        bounds=bounds,
+        constraints=[constraint],
+        options={"disp": False},
+    )
+
+    if not result.success:
+        if result.status == 2:
+            return {
+                "status": "Infeasible",
+                "assignments": pd.DataFrame(),
+                "selected": [],
+            }
+        return {
+            "status": "SolverError",
+            "assignments": pd.DataFrame(),
+            "selected": [],
+            "error": f"SciPy/HiGHS no pudo resolver el modelo: {result.message}",
+        }
+
+    values = result.x
+    selected = [
+        i for i, index in y_indices.items()
+        if values[index] is not None and values[index] > 0.5
+    ]
+    assignments = []
+    for (i, e, t), index in x_indices.items():
+        if values[index] is not None and values[index] > 0.5:
+            activity_name = actividades.loc[
+                actividades["id"].astype(int) == i, "nombre"
+            ].iloc[0]
+            space_name = espacios.loc[
+                espacios["id"].astype(str) == str(e), "nombre"
+            ].iloc[0]
+            assignments.append(
+                {
+                    "actividad": i,
+                    "nombre": activity_name,
+                    "espacio": e,
+                    "nombre_espacio": space_name,
+                    "inicio": t,
+                    "fin": t + durations[i] - 1,
+                }
+            )
+    assignment_df = pd.DataFrame(assignments).sort_values(
+        ["espacio", "inicio", "actividad"],
+        ignore_index=True,
+    )
+    return {
+        "status": "Optimal",
+        "assignments": assignment_df,
+        "selected": selected,
+    }
+
+
 def _read_csv(name: str, required_columns: list[str]) -> pd.DataFrame:
     path = DATA_DIR / name
     if not path.exists():
@@ -370,13 +581,21 @@ def solve_instance(
             cbc_solver = pulp.PULP_CBC_CMD(msg=False)
             status = model.solve(cbc_solver)
         except (OSError, pulp.PulpSolverError) as exc:
+            scipy_result = solve_with_scipy(instance, budget, weights)
+            if scipy_result["status"] in {"Optimal", "Infeasible"}:
+                return scipy_result
             return {
                 "status": "SolverError",
                 "assignments": pd.DataFrame(),
                 "selected": [],
                 "error": f"No se pudo ejecutar un solver compatible. "
-                f"{'; '.join(solver_errors)}; CBC: {exc}",
+                f"{'; '.join(solver_errors)}; CBC: {exc}; "
+                f"{scipy_result.get('error', '')}",
             }
+        if pulp.LpStatus[status] not in {"Optimal", "Infeasible"}:
+            scipy_result = solve_with_scipy(instance, budget, weights)
+            if scipy_result["status"] in {"Optimal", "Infeasible"}:
+                return scipy_result
     status_name = pulp.LpStatus[status]
     if status_name != "Optimal":
         return {"status": status_name, "assignments": pd.DataFrame(), "selected": []}
