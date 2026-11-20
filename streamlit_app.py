@@ -122,7 +122,6 @@ if run:
                 selected_table,
                 hide_index=True,
                 width="stretch",
-                alt="Tabla de actividades seleccionadas por el modelo",
             )
 
             st.subheader("Asignacion")
@@ -142,7 +141,6 @@ if run:
                     ),
                     hide_index=True,
                     width="stretch",
-                    alt="Asignacion de actividades a espacios y franjas",
                 )
 
             st.subheader("Actividades descartadas")
@@ -155,7 +153,6 @@ if run:
                 discarded,
                 hide_index=True,
                 width="stretch",
-                alt="Tabla de actividades descartadas por el modelo",
             )
 
             export = activities[
