@@ -1,18 +1,34 @@
 # Planificacion optima de un evento
 
-## Estructura del repositorio
+Proyecto minimo de programacion lineal entera para seleccionar y programar actividades.
 
-- `_instr/`: enunciado original sin modificar.
-- `data/`: datos compartidos de la instancia en CSV.
-- `1_data_and_formulation/`: contexto, datos y formulacion matematica.
-- `2_model_implementation/`: implementacion del modelo y de la interfaz.
-- `3_testing_and_analysis/`: pruebas y escenarios.
-- `informe/`: documento en LaTeX y PDF generado.
+## Sitio de la aplicacion
 
-Los CSV se mantienen en `data/` y no dentro de una parte concreta porque son una entrada compartida por el modelo, las pruebas y el informe. `informe/` esta separado de la formulacion porque contiene la entrega escrita completa, no los archivos de trabajo de la Parte 1.
+Desde la raíz del repositorio, crear el entorno virtual, instalar las
+dependencias y ejecutar Streamlit:
 
-## Tres partes
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m streamlit run streamlit_app.py
+```
 
-1. Parte 1 - datos y formulacion: desarrollar el contexto, describir los datos y completar la formulacion y la ampliacion.
-2. Parte 2 - implementacion: cargar y validar los datos, resolver el modelo y ofrecer una interfaz sencilla.
-3. Parte 3 - pruebas y analisis: probar instancias y tres prioridades, comparar resultados y documentar las conclusiones.
+Abrir la dirección indicada por Streamlit, normalmente
+`http://localhost:8501`. La aplicación utiliza los CSV de `data/`.
+
+## Crear el PDF del informe
+
+Instalar primero una distribución LaTeX compatible con `pdflatex`, como
+MacTeX/TeX Live en macOS o TeX Live/MiKTeX en Linux y Windows. Después,
+compilar dos veces desde la raíz del repositorio:
+
+```bash
+cd informe
+pdflatex -interaction=nonstopmode -halt-on-error informe.tex
+pdflatex -interaction=nonstopmode -halt-on-error informe.tex
+```
+
+El segundo pase resuelve referencias cruzadas e índices. El PDF generado
+se guarda como `informe/informe.pdf`.

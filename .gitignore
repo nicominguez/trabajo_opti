@@ -7,11 +7,5 @@ venv/
 # Streamlit
 .streamlit/
 
-# Outputs and notebooks
-resultados/
-*.egg-info/
-.ipynb_checkpoints/
-
 # OS/editor
 .DS_Store
-.vscode/
