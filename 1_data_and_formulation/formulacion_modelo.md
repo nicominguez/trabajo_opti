@@ -1,97 +1,104 @@
-# Formulacion del modelo (texto plano, independiente de la herramienta)
+# Especificacion tecnica del modelo
 
-Valido para Lindo, Lingo o PuLP: cambia la sintaxis, no el modelo.
-Version: sin minimos por categoria (R10 eliminada). La ampliacion es R9 (incompatibilidades).
+Esta especificacion define el modelo de forma independiente de la herramienta. Su sintaxis cambia segun el solver, pero no su formulacion.
 
-## 1. Conjuntos
+## Conjuntos, parametros y variables
 
-- I : actividades (id 1..18, ver actividades.csv)
-- E : espacios (E1, E2, E3, ver espacios.csv)
-- T : franjas 1..F, con F = num_franjas (parametros.csv). Cada dia tiene franjas_por_dia franjas (con los datos actuales: F = 8, 4 por dia: dia 1 = franjas 1-4, dia 2 = franjas 5-8)
-- O : subconjunto de I con obligatoria = 1
-- P : pares (i,j) de actividades incompatibles (incompatibilidades.csv)
+| Tipo | Simbolo | Definicion | Fuente |
+|---|---|---|---|
+| Conjunto | $I$ | Actividades | `actividades.csv` |
+| Conjunto | $E$ | Espacios | `espacios.csv` |
+| Conjunto | $T=\{1,\ldots,F\}$ | Franjas | `parametros.csv` |
+| Conjunto | $O\subseteq I$ | Actividades obligatorias | `actividades.csv` |
+| Conjunto | $P$ | Pares de actividades incompatibles | `incompatibilidades.csv` |
+| Parametro | $d_i$ | Duracion de $i$ en franjas | `actividades.csv` |
+| Parametro | $a_i$ | Asistencia esperada de $i$ | `actividades.csv` |
+| Parametro | $v_i$ | Valoracion de $i$ | `actividades.csv` |
+| Parametro | $c_i$ | Coste de $i$ | `actividades.csv` |
+| Parametro | $\mathrm{cap}_e$ | Capacidad de $e$ | `espacios.csv` |
+| Parametro | $\mathrm{comp}(i,e)$ | $1$ si $i$ es compatible con $e$ | `compat_espacios.csv` |
+| Parametro | $\mathrm{dispA}(i,s)$ | $1$ si $i$ esta disponible en $s$ | `disp_actividades.csv` |
+| Parametro | $\mathrm{dispE}(e,s)$ | $1$ si $e$ esta disponible en $s$ | `disp_espacios.csv` |
+| Parametro | $F$ | Numero de franjas | `parametros.csv` |
+| Parametro | $FD$ | Franjas por dia | `parametros.csv` |
+| Parametro | $\mathrm{dia}(t)=\lceil t/FD\rceil$ | Dia de la franja $t$ | Calculado |
+| Parametro | $B$ | Presupuesto | `parametros.csv` |
+| Parametro | $w_A,w_V,w_N$ | Pesos de los tres criterios | `parametros.csv` |
+| Parametro | $N=\lvert I\rvert$ | Numero de actividades | Calculado |
+| Parametro | $A_{\mathrm{tot}}=\sum_{i\in I}a_i$ | Suma de asistencias | Calculado |
+| Parametro | $V_{\mathrm{tot}}=\sum_{i\in I}v_i$ | Suma de valoraciones | Calculado |
+| Variable | $y_i$ | $1$ si $i$ se programa | Binaria |
+| Variable | $x_{i,e,t}$ | $1$ si $i$ empieza en $e$ en $t$ | Binaria |
 
-## 2. Parametros (y de que archivo salen)
+## Restricciones
 
-| Parametro | Significado | Archivo |
-|---|---|---|
-| d_i | duracion en franjas | actividades.csv (duracion) |
-| a_i | asistencia esperada | actividades.csv (asistencia) |
-| v_i | valoracion | actividades.csv (valoracion) |
-| c_i | coste | actividades.csv (coste) |
-| cap_e | capacidad del espacio e | espacios.csv (capacidad) |
-| comp(i,e) | 1 si i es compatible con e, 0 si no | compat_espacios.csv (1 si existe la fila) |
-| dispA(i,s) | 1 si i puede ocupar la franja s | disp_actividades.csv (1 si existe la fila; sin fila = 0) |
-| dispE(e,s) | 1 si e esta disponible en la franja s | disp_espacios.csv (1 si existe la fila) |
-| F | numero de franjas | parametros.csv (num_franjas) |
-| FD | franjas por dia | parametros.csv (franjas_por_dia) |
-| dia(t) | dia de la franja t = techo(t / FD) | calculado |
-| B | presupuesto | parametros.csv (presupuesto) |
-| w_A, w_V, w_N | pesos de asistencia, valoracion y numero de actividades (suman 1) | parametros.csv |
-| N | numero total de actividades | calculado: |I| |
-| A_tot | suma de a_i sobre todas las actividades | calculado |
-| V_tot | suma de v_i sobre todas las actividades | calculado |
+**$R_1$.** Seleccion y relacion entre $y_i$ y $x_{i,e,t}$:
+$$
+y_i=\sum_{e\in E}\sum_{t\in T}x_{i,e,t}\leq 1
+\qquad \forall i\in I
+$$
 
-## 3. Variables (binarias)
+**$R_2$.** Las actividades obligatorias se programan:
+$$
+y_i=1 \qquad \forall i\in O
+$$
 
-- x(i,e,t) = 1 si la actividad i empieza en el espacio e en la franja t; 0 si no
-- y(i) = 1 si la actividad i se programa; 0 si no
+**$R_3$.** Solo se asignan espacios compatibles:
+$$
+x_{i,e,t}=0 \qquad \text{si } \mathrm{comp}(i,e)=0
+$$
 
-x se define para TODAS las combinaciones (i,e,t). Las reglas de compatibilidad, capacidad, disponibilidad y horario se imponen como restricciones (R3 a R6).
+**$R_4$.** La asistencia debe caber en la capacidad:
+$$
+x_{i,e,t}=0 \qquad \text{si } a_i>\mathrm{cap}_e
+$$
 
-## 4. Funcion objetivo
+**$R_5$.** Actividad y espacio deben estar disponibles durante toda la duracion:
+$$
+x_{i,e,t}\leq
+\mathrm{dispA}(i,s)\,\mathrm{dispE}(e,s)
+\qquad \forall s\in\{t,\ldots,t+d_i-1\}
+$$
 
-```
-max  suma sobre i en I de:  y(i) * ( w_A * a_i / A_tot + w_V * v_i / V_tot + w_N / N )
-```
+**$R_6$.** No se termina despues del horizonte ni se cruza de dia:
+$$
+x_{i,e,t}=0
+\qquad \text{si } t+d_i-1>F
+\ \text{o}\ \mathrm{dia}(t)\neq\mathrm{dia}(t+d_i-1)
+$$
 
-## 5. Restricciones
+**$R_7$.** El coste total no supera el presupuesto:
+$$
+\sum_{i\in I}c_i y_i\leq B
+$$
 
-```
-R1  y(i) = suma sobre e en E y t en T de x(i,e,t)        para todo i
-    y(i) <= 1                                             para todo i
+**$R_8$.** Un espacio no alberga solapamientos:
+$$
+\sum_{i\in I}
+\sum_{t=\max(1,s-d_i+1)}^{s}
+x_{i,e,t}\leq 1
+\qquad \forall e\in E,\ \forall s\in T
+$$
 
-R2  y(i) = 1                                              para todo i en O
+**$R_9$.** Actividades incompatibles no coinciden en ninguna franja:
+$$
+\sum_{e\in E}\sum_{t=\max(1,s-d_i+1)}^{s}x_{i,e,t}
++
+\sum_{e\in E}\sum_{t=\max(1,s-d_j+1)}^{s}x_{j,e,t}
+\leq 1
+\qquad \forall (i,j)\in P,\ \forall s\in T
+$$
 
-R3  x(i,e,t) = 0        si comp(i,e) = 0
+## Modelo
 
-R4  x(i,e,t) = 0        si a_i > cap_e
-
-R5  x(i,e,t) <= dispA(i,s) * dispE(e,s)
-    para cada s desde t hasta t + d_i - 1                 (todas las franjas que ocupa)
-
-R6  x(i,e,t) = 0        si t + d_i - 1 > F
-    x(i,e,t) = 0        si dia(t) != dia(t + d_i - 1)     (no cruzar de dia)
-
-R7  suma sobre i en I de c_i * y(i) <= B
-
-R8  para cada e en E y cada s en T:
-    suma sobre i en I, y sobre t desde max(1, s - d_i + 1) hasta s, de x(i,e,t) <= 1
-
-R9  para cada par (i,j) en P y cada s en T:
-    [ suma sobre e en E y t desde max(1, s - d_i + 1) hasta s de x(i,e,t) ]
-  + [ suma sobre e en E y t desde max(1, s - d_j + 1) hasta s de x(j,e,t) ] <= 1
-```
-
-## 6. Que significa cada restriccion
-
-- R1: cada actividad se programa como maximo una vez.
-- R2: las obligatorias siempre se programan.
-- R3: solo espacios compatibles.
-- R4: la asistencia cabe en el espacio.
-- R5: actividad y espacio estan disponibles en todas las franjas que ocupa, no solo en la de inicio.
-- R6: no terminar despues de la ultima franja F ni cruzar de un dia a otro.
-- R7: el coste total no supera el presupuesto.
-- R8: un espacio no tiene dos actividades a la vez. Una actividad que empieza en t ocupa t, t+1, ..., t+d_i-1.
-- R9 (ampliacion): dos actividades incompatibles no coinciden en ninguna franja, aunque esten en espacios distintos.
-
-## 7. Notas para programarlo
-
-- En R8 y R9, t nunca baja de 1: hay que saltarse los valores que no existan.
-- Sin fila en disp_actividades.csv = sin disponibilidad. El validador debe avisar si una actividad no tiene ninguna fila.
-- Los pesos w_A, w_V y w_N deben sumar 1: el validador debe comprobarlo.
-- Los escenarios del informe usan exactamente estos pesos (w_A, w_V, w_N): asistencia 1 / 0 / 0; valoracion 0 / 1 / 0; numero de actividades 0,1 / 0,1 / 0,8. Con presupuesto 6.500 salen programaciones distintas (9, 12 y 12 actividades). El archivo parametros.csv trae los pesos por defecto 0,4 / 0,4 / 0,2.
-- El numero de franjas y las franjas por dia salen de parametros.csv (num_franjas, franjas_por_dia): no deben estar fijos en el codigo (ni el 8 ni el 4).
-- "Problema inviable" es un resultado valido: la app debe indicarlo, no fallar.
-- R3 a R6 se pueden implementar fijando x(i,e,t) = 0 o con la desigualdad equivalente. Mantener las cuatro reglas visibles en el codigo, no filtradas antes de crear variables, para que la formulacion del informe coincida con el codigo.
-- La columna "categoria" de actividades.csv ya no interviene en el modelo; se mantiene en el archivo como dato descriptivo.
+El modelo maximiza la suma ponderada y normalizada de asistencia, valoracion y numero de actividades:
+$$
+\max \sum_{i\in I} y_i
+\left(
+w_A\frac{a_i}{A_{\mathrm{tot}}}
++
+w_V\frac{v_i}{V_{\mathrm{tot}}}
++
+\frac{w_N}{N}
+\right)
+$$
