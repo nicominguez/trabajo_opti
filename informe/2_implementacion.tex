@@ -1,0 +1,20 @@
+\section{Implementacion y interfaz}
+
+\subsection{Motor de optimizacion}
+
+La implementacion utiliza pandas para cargar y validar los siete archivos CSV y PuLP con CBC para resolver el modelo binario. La instancia se carga desde `data/`. Los datos invalidos producen un error de entrada; una instancia validamente formulada sin solucion produce un resultado inviable distinto.
+
+Las comprobaciones basicas incluyen columnas obligatorias, identificadores existentes, valores negativos, parametros y referencias rotas. Las variables $x_{i,e,t}$ solo se crean cuando la actividad es compatible, cabe en la capacidad, esta disponible y no se sale del horizonte ni cruza un dia.
+
+\subsection{Interfaz}
+
+La aplicacion Streamlit permite escoger el presupuesto y los tres pesos, resolver el modelo y descargar un CSV con el estado de todas las actividades. La salida presenta actividades seleccionadas y descartadas, asignacion por espacio y franja, y asistencia, valoracion, numero de actividades y coste.
+
+\subsection{Ejecucion}
+
+\begin{verbatim}
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m streamlit run streamlit_app.py
+\end{verbatim}

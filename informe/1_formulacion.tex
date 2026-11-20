@@ -1,0 +1,111 @@
+\section{Contexto y datos}
+
+\subsection{Contexto del evento}
+
+Se considera un evento academico de ciencia de datos organizado en dos dias, con ocho franjas temporales y cuatro franjas por dia. La organizacion debe decidir que actividades ofrece, cada una como mucho una vez, y asignar su inicio a un espacio compatible y disponible. Las decisiones afectan a la asistencia esperada, a la valoracion de las actividades, al coste total y al numero de actividades ofrecidas.
+
+Las actividades son conferencias, talleres y mesas redondas. Las franjas representan bloques horarios discretos. Una actividad de duracion $d_i$ ocupa las franjas $t,t+1,\ldots,t+d_i-1$. No puede superar la franja 8 ni cambiar de dia.
+
+\subsection{Instancia principal}
+
+La instancia contiene 18 actividades, tres espacios, ocho franjas y tres categorias. Hay dos actividades obligatorias, talleres de varias franjas y relaciones de incompatibilidad. Los costes se expresan en unidades monetarias y el presupuesto principal es 6500.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llrr}
+\hline
+Espacio & Nombre & Capacidad & Franjas disponibles \\
+\hline
+E1 & Auditorio & 200 & 1--8 \\
+E2 & Aula de ordenadores & 40 & 1,2,3,5,6,7,8 \\
+E3 & Sala de seminarios & 80 & 2,3,4,6,7,8 \\
+\hline
+\end{tabular}
+\caption{Espacios de la instancia principal.}
+\end{table}
+
+Los datos estan separados del codigo en `data/`. Las relaciones se mantienen mediante identificadores. Una fila sin disponibilidad significa que no existe esa franja disponible para la actividad o el espacio correspondiente.
+
+\subsection{Conjuntos y parametros}
+
+\begin{itemize}
+\item $I$: actividades.
+\item $E$: espacios.
+\item $T=\{1,\ldots,8\}$: franjas.
+\item $d_i$: duracion de $i$ en franjas.
+\item $a_i$: asistencia esperada.
+\item $v_i$: valoracion.
+\item $c_i$: coste.
+\item $B$: presupuesto.
+\item $\mathrm{cap}_e$: capacidad de $e$.
+\item $F=8$: horizonte; $FD=4$: franjas por dia.
+\item $w_A,w_V,w_N$: pesos normalizados de asistencia, valoracion y numero de actividades.
+\end{itemize}
+
+\subsection{Variables}
+
+Se usa una variable binaria
+\[
+y_i=
+\begin{cases}
+1,&\text{si se programa la actividad }i,\\
+0,&\text{en otro caso.}
+\end{cases}
+\]
+
+Se usa una variable binaria $x_{i,e,t}$ que vale 1 si la actividad $i$ comienza en el espacio $e$ en la franja $t$.
+
+\subsection{Restricciones}
+
+\paragraph{Seleccion unica.}
+\[
+\sum_{e\in E}\sum_{t\in T}x_{i,e,t}=y_i
+\qquad\forall i\in I.
+\]
+
+\paragraph{Actividades obligatorias.}
+\[
+y_i=1\qquad\forall i\in O.
+\]
+
+\paragraph{Compatibilidad y capacidad.}
+Solo se crean variables $x_{i,e,t}$ para pares compatibles y con $\mathrm{cap}_e\geq a_i$.
+
+\paragraph{Disponibilidad y horizonte.}
+Solo se crean variables cuya actividad y espacio estan disponibles en todas las franjas ocupadas. Tambien debe cumplirse $t+d_i-1\leq F$ y que $t$ y $t+d_i-1$ pertenezcan al mismo dia.
+
+\paragraph{Presupuesto.}
+\[
+\sum_{i\in I}c_i y_i\leq B.
+\]
+
+\paragraph{Ocupacion de espacios.}
+Para cada $e$ y franja $s$,
+\[
+\sum_{i\in I}\sum_{\substack{t\in T\\t\leq s<t+d_i}}
+x_{i,e,t}\leq 1.
+\]
+Esta restriccion incluye en el solapamiento las franjas interiores de una actividad de varias franjas.
+
+\subsection{Funcion objetivo}
+
+Se maximiza
+\[
+Z=
+w_A\frac{\sum_i a_i y_i}{\sum_i a_i}
++
+w_V\frac{\sum_i v_i y_i}{\sum_i v_i}
++
+w_N\frac{\sum_i y_i}{|I|},
+\]
+con $w_A+w_V+w_N=1$. Las tres componentes estan acotadas entre cero y uno. Esta normalizacion evita que un criterio domine solo por la escala numerica. Para priorizar un criterio se fija su peso en uno y los otros en cero.
+
+\subsection{Ampliacion}
+
+Los pares $(i,j)\in P$ son incompatibles y no pueden solaparse. Para cada $s\in T$ se impone
+\[
+\sum_{\substack{t\in T\\t\leq s<t+d_i}}\sum_{e\in E}x_{i,e,t}
++
+\sum_{\substack{t\in T\\t\leq s<t+d_j}}\sum_{e\in E}x_{j,e,t}
+\leq 1.
+\]

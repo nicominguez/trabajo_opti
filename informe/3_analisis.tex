@@ -1,0 +1,25 @@
+\section{Analisis de escenarios}
+
+\subsection{Hipotesis previa}
+
+El escenario de asistencia deberia favorecer conferencias con mayor afluencia esperada. El escenario de valoracion deberia priorizar talleres mejor valorados. El escenario con peso $0.8$ en el numero de actividades deberia favorecer varias actividades cortas dentro del presupuesto y las limitaciones temporales.
+
+\subsection{Comparacion}
+
+Se mantienen constantes la instancia, el presupuesto de 6500 y todas las restricciones. Los resultados se obtienen ejecutando el mismo codigo y cambiando unicamente los pesos.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrr}
+\hline
+Escenario & Pesos & Actividades & Asistencia & Valoracion & Coste \\
+\hline
+Asistencia & $(1,0,0)$ & 10 & 880 & 33.6 & 6450 \\
+Valoracion & $(0,1,0)$ & 12 & 788 & 43.7 & 6500 \\
+Numero & $(0.1,0.1,0.8)$ & 12 & 863 & 42.3 & 6500 \\
+\hline
+\end{tabular}
+\caption{Comparacion de los escenarios exigidos.}
+\end{table}
+
+El escenario de asistencia obtiene la mayor asistencia, 880 personas, pero menos valoracion y menos actividades que los otros dos escenarios. La valoracion maxima alcanza 43.7 y programa 12 actividades, aunque la asistencia desciende a 788. El escenario centrado en el numero programa 12 actividades y mantiene una asistencia alta, 863, y una valoracion de 42.3. En este conjunto de datos las prioridades se traducen en compromisos cuantificables sin cambiar presupuesto ni restricciones.
