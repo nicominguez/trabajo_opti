@@ -21,9 +21,30 @@ The repository is split by deliverable:
 
 ## Commands
 
-There is currently no dependency manifest, Python package, test runner, linter, build script, or Makefile. Do not invent one as part of a small change.
+### Python environment and Streamlit
 
-The implementation plan explicitly calls for a Python application with Streamlit. Until dependencies are added, use the Python interpreter from the environment and keep setup instructions reproducible rather than relying on machine-wide packages.
+Use Python exclusively through a project virtual environment; never install project dependencies into the system or user-wide Python environment.
+
+From the repository root, create and activate `.venv` before installing or running anything:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+Keep `.venv/` out of Git with a repository `.gitignore`; verify with `git status --short` that it is not tracked. If a different environment manager is already configured for the repository, use that project environment instead and document the equivalent commands.
+
+For Streamlit work:
+
+- Use `python -m streamlit run streamlit_app.py` so the app uses the virtual environment's interpreter and packages.
+- Keep `requirements.txt` as the shared dependency manifest and install dependencies only with `python -m pip` inside `.venv`.
+- Keep Streamlit at the latest stable release in `requirements.txt` or as a compatible version constraint; do not introduce or retain a known-old Streamlit pin.
+- Run Streamlit with `python -m streamlit run streamlit_app.py`. For an explicitly managed port or automated/headless validation, add only the required `--server.port`, `--server.headless`, or `--server.address` flags.
+- Before finalizing Streamlit code changes, type-check changed Python files with the project's configured checker, or install and use `ty` inside `.venv`.
+
+There is currently no Python package, test runner, linter, build script, or Makefile beyond `requirements.txt`. Do not invent one as part of a small change.
 
 The report source can be compiled with TeX when a LaTeX distribution is installed:
 
