@@ -74,7 +74,12 @@ if run:
         with st.spinner("Resolviendo el modelo..."):
             result = solve_instance(instance, float(budget), weights)
 
-        if result["status"] != "Optimal":
+        if result["status"] == "SolverError":
+            st.error(
+                result.get("error", "No se pudo ejecutar el solver."),
+                title="Error del solver",
+            )
+        elif result["status"] != "Optimal":
             st.warning(
                 "El problema es inviable con los parametros actuales.",
                 title="Instancia sin solucion",

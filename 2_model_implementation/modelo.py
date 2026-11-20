@@ -353,8 +353,30 @@ def solve_instance(
         for _, row in actividades.iterrows()
     )
 
-    solver = pulp.PULP_CBC_CMD(msg=False)
-    status = model.solve(solver)
+    solver_errors: list[str] = []
+    status = 0
+    solver = None
+
+    try:
+        highs_solver = pulp.HiGHS(msg=False)
+        if highs_solver.available():
+            solver = highs_solver
+            status = model.solve(solver)
+    except Exception as exc:
+        solver_errors.append(f"HiGHS: {exc}")
+
+    if solver is None or pulp.LpStatus[status] == "Undefined":
+        try:
+            cbc_solver = pulp.PULP_CBC_CMD(msg=False)
+            status = model.solve(cbc_solver)
+        except (OSError, pulp.PulpSolverError) as exc:
+            return {
+                "status": "SolverError",
+                "assignments": pd.DataFrame(),
+                "selected": [],
+                "error": f"No se pudo ejecutar un solver compatible. "
+                f"{'; '.join(solver_errors)}; CBC: {exc}",
+            }
     status_name = pulp.LpStatus[status]
     if status_name != "Optimal":
         return {"status": status_name, "assignments": pd.DataFrame(), "selected": []}
