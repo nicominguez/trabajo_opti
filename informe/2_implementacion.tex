@@ -1,20 +1,141 @@
-\section{Implementacion y interfaz}
+\section{Implementacion y resolucion}
 
-\subsection{Motor de optimizacion}
+\subsection{De la formulacion al programa}
 
-La implementacion utiliza pandas para cargar y validar los siete archivos CSV y PuLP con CBC para resolver el modelo binario. La instancia se carga desde `data/`. Los datos invalidos producen un error de entrada; una instancia validamente formulada sin solucion produce un resultado inviable distinto.
+La formulacion de la Parte~1 separa dos decisiones: si se selecciona una actividad y,
+en caso afirmativo, donde y cuando comienza. En el programa se representan con las
+variables binarias $y_i$ y $x_{i,e,t}$, respectivamente. Esta estructura permite
+aplicar las restricciones a una unica solucion sin introducir reglas especiales por
+tipo de actividad.
 
-Las comprobaciones basicas incluyen columnas obligatorias, identificadores existentes, valores negativos, parametros y referencias rotas. Las variables $x_{i,e,t}$ solo se crean cuando la actividad es compatible, cabe en la capacidad, esta disponible y no se sale del horizonte ni cruza un dia.
+La instancia se carga desde los siete archivos CSV de \texttt{data/}. Las tablas se
+integran mediante identificadores y se validan antes de construir el modelo:
+\begin{itemize}
+\item existen los encabezados requeridos y no hay identificadores duplicados;
+\item duraciones, costes, asistencias, valoraciones y capacidades son coherentes;
+\item los espacios compatibles, las disponibilidades y las incompatibilidades
+      hacen referencia a actividades y espacios existentes;
+\item el horizonte y las franjas por dia forman un numero entero de dias.
+\end{itemize}
 
-\subsection{Interfaz}
+Un error de estructura o de referencia se informa como error de datos. Si los datos
+son validos, pero ninguna asignacion cumple todas las restricciones, el resultado
+se informa como problema inviable. Esta distincion evita confundir una instancia mal
+definida con una instancia sin solucion.
 
-La aplicacion Streamlit permite escoger el presupuesto y los tres pesos, resolver el modelo y descargar un CSV con el estado de todas las actividades. La salida presenta actividades seleccionadas y descartadas, asignacion por espacio y franja, y asistencia, valoracion, numero de actividades y coste.
+\subsection{Construccion del modelo binario}
 
-\subsection{Ejecucion}
+El programa usa \texttt{pandas} para leer y ordenar los datos, y \texttt{PuLP} para
+construir y resolver el modelo entero. El modelo utiliza \texttt{HiGHS} como solver.
+Para cada actividad se crean unicamente las variables $x_{i,e,t}$ factibles:
+\begin{itemize}
+\item la actividad es compatible con el espacio;
+\item la capacidad permite la asistencia esperada;
+\item el inicio tiene duracion disponible sin superar el horizonte;
+\item la actividad no cruza el limite entre dos dias;
+\item la actividad y el espacio estan disponibles en todas las franjas ocupadas.
+\end{itemize}
+
+Las restricciones se implementan sobre franjas. Para cada espacio $e$ y franja $s$
+se exige que la suma de las actividades que ocupan $e$ en $s$ sea como mucho uno.
+Esta comprobacion incluye tambien las franjas interiores de una actividad larga.
+El presupuesto suma los costes de las actividades seleccionadas. Las incompatibilidades
+ampliatorias impiden que dos actividades asociadas ocupen simultaneamente la misma
+franja.
+
+\subsection{Funcion objetivo y normalizacion}
+
+La funcion objetivo combina tres componentes normalizadas:
+\[
+\max Z=
+w_A\frac{\sum_i a_i y_i}{\sum_i a_i}
++w_V\frac{\sum_i v_i y_i}{\sum_i v_i}
++w_N\frac{\sum_i y_i}{|I|}.
+\]
+Los pesos pueden variar mediante la interfaz. El programa normaliza internamente
+su suma para que $w_A+w_V+w_N=1$. De este modo, cada componente toma valores entre
+cero y uno y una unidad de un criterio no domina a las demas por su escala original.
+Por ejemplo, una asistencia de cientos de personas no prevalece sobre una
+valoracion por el hecho de expresarse con numeros mayores.
+
+\subsection{Interfaz de decision}
+
+La aplicacion se desarrolla con Streamlit y se organiza en tres zonas:
+\begin{enumerate}
+\item configuracion del presupuesto y de los tres pesos;
+\item indicadores de la solucion: numero de actividades, asistencia, valoracion,
+      coste y presupuesto;
+\item calendario e informacion detallada de las actividades seleccionadas.
+\end{enumerate}
+
+El calendario tiene como filas los nombres de los espacios y como columnas las
+franjas identificadas por dia y franja, por ejemplo \texttt{D1F3}. Esta estructura
+expresa directamente el recurso que debe no solaparse: cada celda corresponde a un
+espacio y una franja concretos. Por tanto, una celda debe contener como mucho una
+actividad; varias actividades simultaneas aparecen como entradas separadas en
+espacios distintos.
+
+Las franjas permiten tambien concurrencia entre espacios. Asi, varias actividades
+pueden comenzar simultaneamente si se asignan a espacios distintos. Las etiquetas
+de actividad usan un color propio y las columnas se mantienen pequenas para reducir
+el desplazamiento horizontal. La tabla seleccionada colorea la actividad, no su
+categoria, y conserva el espacio, duracion, indicadores y franja de inicio y fin.
+
+\begin{figure}[h]
+\begin{center}
+\pdfximage width 0.48\textwidth page 1 {../images/ss.pdf}
+\pdfrefximage\pdflastximage
+\hfill
+\pdfximage width 0.48\textwidth page 2 {../images/ss.pdf}
+\pdfrefximage\pdflastximage
+\end{center}
+\caption{Interfaz de la aplicacion para la instancia principal.}
+\end{figure}
+
+\subsection{Escenarios previstos}
+
+La interfaz permite reproducir los tres escenarios comparables exigidos:
+\begin{itemize}
+\item asistencia prioritaria: $(w_A,w_V,w_N)=(1,0,0)$;
+\item valoracion prioritaria: $(0,1,0)$;
+\item numero de actividades prioritario: $(0.1,0.1,0.8)$.
+\end{itemize}
+
+Antes de resolver, el escenario de asistencia debe favorecer actividades con mayor
+afluencia esperada, aunque esto pueda reducir el numero total o la valoracion. El
+escenario de valoracion debe seleccionar actividades mejor valoradas. El escenario
+orientado al numero de actividades debe aprovechar el presupuesto con actividades
+de menor coste y duracion, sin rebasar la capacidad ni las incompatibilidades.
+Cada escenario debe conservar presupuesto, datos y restricciones y variar solamente
+los pesos.
+
+\subsection{Resultados de comprobacion}
+
+Con el presupuesto por defecto y los pesos $0.4/0.4/0.2$, la instancia principal
+resuelve como optima y selecciona 12 actividades. La solucion alcanza 863 personas
+de asistencia, una valoracion acumulada de 42.3 y un coste de 6500 unidades. El
+resultado demuestra que el solucionador puede encontrar una asignacion factible en
+la frontera del presupuesto. El motor y la interfaz muestran la misma solucion:
+los indicadores, el calendario y las asignaciones proceden de la misma estructura
+\texttt{result}.
+
+La implementacion distingue tambien tres casos de ejecucion: solucion optima,
+problema inviable y error del solver o de datos. Esta separacion permite interpretar
+el resultado sin asumir que una respuesta vacia es siempre una solucion valida.
+
+El alcance actual de la interfaz cubre la carga de datos, la resolucion, los
+indicadores y la asignacion por espacios y franjas. Para completar el conjunto
+de requisitos, una ampliacion directa consiste en incorporar una exportacion
+CSV de la solucion y permitir seleccionar una instancia alternativa que conserve
+las columnas requeridas. Ambas operaciones deben reutilizar las validaciones
+existentes para no aceptar archivos incompatibles.
+
+\subsection{Ejecucion local}
 
 \begin{verbatim}
 python3 -m venv .venv
 source .venv/bin/activate
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python -m streamlit run streamlit_app.py
 \end{verbatim}

@@ -74,43 +74,59 @@ if st.button("Resolver modelo", type="primary", icon=":material/play_arrow:"):
             c5.metric("Presupuesto", f"{budget:,.0f}".replace(",", "."))
 
             st.subheader("Calendario")
+            activity_palette = [
+                "#2563EB", "#DC2626", "#059669", "#7C3AED",
+                "#EA580C", "#0891B2", "#DB2777", "#65A30D",
+                "#9333EA", "#CA8A04", "#0D9488", "#4F46E5",
+                "#E11D48", "#0369A1", "#16A34A", "#C026D3",
+                "#B45309", "#6D28D9",
+            ]
+            selected_activity_names = list(dict.fromkeys(
+                assignment["nombre"]
+                for _, assignment in result["assignments"].iterrows()
+            ))
+            activity_colors = {
+                name: activity_palette[index % len(activity_palette)]
+                for index, name in enumerate(selected_activity_names)
+            }
             horizon = int(params["num_franjas"])
             slots_per_day = int(params["franjas_por_dia"])
+            space_names = instance["espacios"].set_index("id")["nombre"].to_dict()
             calendar = pd.DataFrame(
-                [[[] for _ in range(slots_per_day)]
-                 for _ in range(horizon // slots_per_day)],
-                index=pd.Index(
-                    [f"Dia {day}" for day in range(1, horizon // slots_per_day + 1)]
-                ),
+                [[[] for _ in range(horizon)]
+                 for _ in space_names],
+                index=pd.Index(list(space_names.values())),
                 columns=pd.Index([
-                    f"Franja {slot}"
-                    for slot in range(1, slots_per_day + 1)
+                    f"D{((slot - 1) // slots_per_day) + 1}"
+                    f"F{((slot - 1) % slots_per_day) + 1}"
+                    for slot in range(1, horizon + 1)
                 ]),
             )
             for _, assignment in result["assignments"].iterrows():
-                day = (int(assignment["inicio"]) - 1) // slots_per_day + 1
-                for slot in range(
-                    int(assignment["inicio"]),
-                    int(assignment["fin"]) + 1,
-                ):
-                    slot_in_day = slot - (day - 1) * slots_per_day
-                    entry = (
-                        f"{assignment['nombre']} "
-                        f"[{assignment['espacio']}]"
-                    )
+                for slot in range(int(assignment["inicio"]), int(assignment["fin"]) + 1):
+                    day = (slot - 1) // slots_per_day + 1
+                    slot_in_day = (slot - 1) % slots_per_day + 1
                     calendar.loc[
-                        f"Dia {day}", f"Franja {slot_in_day}"
-                    ].append(entry)
+                        assignment["nombre_espacio"],
+                        f"D{day}F{slot_in_day}",
+                    ].append(assignment["nombre"])
 
-            calendar_options = [
-                f"{assignment['nombre']} [{assignment['espacio']}]"
-                for _, assignment in result["assignments"].iterrows()
+            calendar_options = list(dict.fromkeys(
+                entry
+                for row in calendar.to_numpy().flatten()
+                for entry in row
+            ))
+            calendar_colors = [
+                activity_colors[name]
+                for name in calendar_options
             ]
             calendar_config = {
                 column: st.column_config.MultiselectColumn(
                     column,
                     options=calendar_options,
-                    color="primary",
+                    color=calendar_colors,
+                    width="small",
+                    disabled=True,
                 )
                 for column in calendar.columns
             }
@@ -127,8 +143,8 @@ if st.button("Resolver modelo", type="primary", icon=":material/play_arrow:"):
                 details = activity_details.loc[activity_id]
                 selected_rows.append({
                     "ID": activity_id,
-                    "Actividad": assignment["nombre"],
-                    "Categoria": [str(details["categoria"])],
+                    "Actividad": [str(assignment["nombre"])],
+                    "Categoria": str(details["categoria"]),
                     "Duracion": int(details["duracion"]),
                     "Asistencia": int(details["asistencia"]),
                     "Valoracion": float(details["valoracion"]),
@@ -138,14 +154,23 @@ if st.button("Resolver modelo", type="primary", icon=":material/play_arrow:"):
                     "Franja inicio": int(assignment["inicio"]),
                     "Franja fin": int(assignment["fin"]),
                 })
+            selected_table_names = [
+                str(name)
+                for name in selected_activity_names
+            ]
             st.dataframe(
                 pd.DataFrame(selected_rows),
                 hide_index=True,
                 column_config={
-                    "Categoria": st.column_config.MultiselectColumn(
-                        "Categoria",
-                        options=["ML", "Estadistica", "Ingenieria"],
-                        color="primary",
-                    )
+                    "Actividad": st.column_config.MultiselectColumn(
+                        "Actividad",
+                        options=selected_table_names,
+                        color=[
+                            activity_colors[name]
+                            for name in selected_table_names
+                        ],
+                        width="medium",
+                        disabled=True,
+                    ),
                 },
             )
