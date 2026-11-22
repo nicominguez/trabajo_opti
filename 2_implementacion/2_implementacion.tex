@@ -2,82 +2,150 @@
 
 \subsection{Implementación}
 
-\subsubsection{Carga y validación de datos}
+\subsubsection*{Carga y validación de datos}
+\addcontentsline{toc}{subsubsection}{2.1.1. Carga y validación de datos}
 
-La instancia se carga desde los siete archivos CSV de \texttt{data/}. La
-implementación utiliza \texttt{pandas} para leer las tablas y
-\texttt{PuLP} para construir el modelo entero. El archivo
-\texttt{modelo.py}, dentro de \texttt{2\_implementacion/}, separa la carga y validación de los datos
-de la construcción y resolución del modelo.
+La implementación se divide entre \texttt{modelo.py} y
+\texttt{streamlit\_app.py}. El primer archivo contiene el acceso a datos y el
+motor de optimización; el segundo solamente recoge los parámetros del usuario,
+invoca el motor y presenta sus resultados.
 
-Antes de resolver se comprueban los encabezados obligatorios, los identificadores
-duplicados, los valores numéricos y las relaciones entre actividades y espacios.
-También se valida que el horizonte y las franjas por día formen un número entero
-de días. Los errores de estructura o referencia se presentan como errores de
-datos.
+La función \texttt{load\_instance()} carga los siete archivos CSV de
+\texttt{data/} mediante \texttt{pandas}. Las tablas contienen las actividades,
+los espacios, sus compatibilidades y disponibilidades, las incompatibilidades
+y los parámetros generales. La separación entre datos y código permite sustituir
+la instancia sin modificar las restricciones ni el objetivo. Por tanto, cada
+fila representa un dato del modelo formulado en la Parte 1, mientras que las
+funciones mantienen independiente el procedimiento de resolución.
 
-\subsubsection{Construcción y resolución}
+Antes de construir el modelo se convierte la información numérica a tipos
+válidos y se comprueban encabezados obligatorios, duplicados, valores
+negativos, identificadores desconocidos y franjas fuera del horizonte. También
+se exige que las franjas por día dividan correctamente las ocho franjas y que
+los pesos sumen uno. Los errores se agrupan en \texttt{DataValidationError};
+de este modo, un archivo mal formado no llega al solver ni produce una solución
+aparentemente válida.
 
-La formulación se representa con variables binarias \texttt{y[i]} para la
-selección y \texttt{x[i,e,t]} para la asignación inicial. Solo se crean variables
-factibles desde el punto de vista de compatibilidad, capacidad, disponibilidad y
-duración.
+\subsubsection*{Construcción y resolución}
+\addcontentsline{toc}{subsubsection}{2.1.2. Construcción y resolución}
 
-Las restricciones se aplican sobre cada franja: el presupuesto suma los costes
-de las actividades seleccionadas y las actividades obligatorias toman el valor
-uno. La ocupación impide solapes dentro de un espacio, también para actividades
-de varias franjas. La ampliación impide que los pares incompatibles ocupen la
-misma franja.
+La función \texttt{solve\_instance()} traduce las variables binarias
+$y_i$ y $x_{i,e,t}$ de la formulación a variables de PuLP. \texttt{LpVariable}
+con categoría \texttt{Binary} fija ambas familias como 0 o 1. Para cada
+actividad se crean únicamente variables \(x_{i,e,t}\) compatibles con su
+asistencia, su espacio, su disponibilidad y su duración. Así se elimina desde
+el inicio una asignación que ya se sabe imposible, sin cambiar R3--R6.
 
-La función objetivo combina la asistencia, la valoración y el número de
-actividades. La interfaz permite fijar los pesos de asistencia y valoración y
-calcula \(w_N=1-w_A-w_V\), de modo que los pesos efectivos cumplen
-\(w_A+w_V+w_N=1\). Como defensa adicional, el motor normaliza una terna recibida
-desde código y rechaza una terna totalmente nula. El modelo se resuelve con el
-solver HiGHS mediante \texttt{pulp.HiGHS}. La implementación distingue solución
-óptima, problema inviable y error del solver o de los datos.
+A continuación, el código añade las restricciones sobre esos mismos conjuntos:
+R1 iguala \(y_i\) con sus posibles asignaciones; R2 fija en uno las
+obligatorias; R7 limita el coste por el presupuesto; R8 impide solapes en un
+espacio; y R9 impide simultaneidades entre pares incompatibles. Para una
+actividad de varias franjas, la comprobación se realiza sobre todas las franjas
+ocupadas, no solo sobre la franja inicial. Las restricciones de límite diario,
+de disponibilidad y de compatibilidad se verifican al crear las variables
+$x_{i,e,t}$.
+
+El objetivo se construye con los tres términos normalizados de la Parte 1:
+asistencia sobre el total, valoración sobre el total y número de actividades
+sobre $|I|$. Si se reciben tres pesos arbitrarios, el motor los divide por su
+suma antes de resolver. De esta manera el programa conserva el significado
+relativo de los criterios y rechaza presupuestos o pesos negativos y ternas
+totalmente nulas.
+
+Finalmente, el modelo se maximiza con HiGHS mediante \texttt{pulp.HiGHS}.
+La respuesta no se interpreta solamente como óptima o errónea: se distingue
+entre solución óptima, inviabilidad, datos inválidos y error del solver. Cuando
+existe una solución, el código selecciona las variables \(y_i\) y
+\(x_{i,e,t}\) positivas y construye dos resultados: la lista de actividades
+seleccionadas y las asignaciones ordenadas por espacio, franja e identificador.
+También calcula asistencia, valoración y coste a partir de las tablas originales,
+por lo que los indicadores mostrados pueden verificarse directamente.
 
 \subsection{Interfaz}
 
-\subsubsection{Configuración y ejecución}
+\subsubsection*{Configuración y ejecución}
+\addcontentsline{toc}{subsubsection}{2.2.1. Configuración y ejecución}
 
-La interfaz se desarrolla con Streamlit en \texttt{streamlit\_app.py}. Permite
-modificar el presupuesto y los pesos de asistencia y valoración. El peso del
-número de actividades se calcula como \(w_N=1-w_A-w_V\), por lo que los tres
-pesos siempre suman uno. La interfaz muestra además la terna efectiva y su suma.
-Al pulsar el botón de resolución se indica si existe una solución óptima, si el
-problema es inviable o si se ha producido un error.
+Streamlit resulta adecuado porque el trabajo es una aplicación de decisión
+pequeña en Python: permite combinar controles, resolución y presentación sin
+un servidor, una API o un frontend separados. Su modelo reactivo recalcula
+la vista a partir del estado visible, de modo que el proyecto mantiene una
+cantidad limitada de código y dependencias.
 
-\subsubsection{Presentación de resultados}
+\texttt{streamlit\_app.py} carga la instancia al iniciar y configura una página
+simple en ancho amplio. El presupuesto se ofrece mediante un deslizador y los
+pesos de asistencia y valoración mediante otros dos. El peso del número de
+actividades no requiere control independiente: se calcula como
+$w_N=1-w_A-w_V$, se valida que $w_A+w_V\leq1$ y se muestra la terna efectiva.
+Esta disposición evita que el usuario pueda introducir por la interfaz una
+combinación que no sume uno.
 
-Para una solución óptima, la interfaz presenta el número de actividades,
-asistencia, valoración, coste y presupuesto. También muestra un calendario
-ordenado por espacios y franjas, identificado con etiquetas como \texttt{D1F3},
-y una tabla con las actividades seleccionadas.
+Al pulsar \emph{Resolver}, el código llama a \texttt{solve\_instance()} y
+traduce directamente el estado devuelto por el motor. Una solución óptima
+muestra resultados; un estado de inviabilidad muestra una advertencia clara;
+un problema de datos o del solver muestra su categoría correspondiente.
+No se presenta una solución parcial como si fuera válida.
 
-La tabla detallada conserva la actividad, categoría, duración, asistencia,
-valoración, coste, espacio y franjas inicial y final. Permite comprobar la
-asignación sin gráficos complejos. La interfaz carga la instancia principal
-desde \texttt{data/} y ofrece la descarga CSV integrada de esta tabla de
-actividades seleccionadas. Al mantener los archivos de entrada separados del
-código, se puede modificar la instancia y ejecutar otra resolución compatible.
+\subsubsection*{Presentación de resultados}
+\addcontentsline{toc}{subsubsection}{2.2.2. Presentación de resultados}
 
-Las actividades no seleccionadas se muestran de forma compacta en una sección
-plegable, para cumplir el requisito de informar de los descartes sin sobrecargar
-la vista principal.
+La disposición conserva un orden visual coherente con la toma de decisiones:
+primero los parámetros, después los indicadores, luego el calendario y, por
+último, el detalle seleccionado. Los cinco indicadores resumen actividades,
+asistencia, valoración, coste y presupuesto. Esta selección evita gráficos y
+textos añadidos que no contribuyan a la decisión.
+
+El calendario se representa como una tabla por espacios y franjas. Las columnas
+usan etiquetas \texttt{D1F1} a \texttt{D2F4}, derivadas de los parámetros
+\texttt{num\_franjas} y \texttt{franjas\_por\_dia}. Para cada asignación,
+el nombre de la actividad se escribe en todas las columnas que ocupa. Cada
+identificador conserva una paleta fija y esa misma etiqueta coloreada se utiliza
+en el calendario y en la tabla. La asociación visual permite reconocer una
+actividad sin depender únicamente de su nombre.
+
+La tabla seleccionada contiene identificador, nombre, categoría, duración,
+asistencia, valoración, coste, espacio y franjas inicial y final. La salida
+proviene de las asignaciones devueltas por PuLP combinadas con los datos CSV;
+no se vuelve a calcular el calendario. Un único botón genera el CSV de esta
+misma tabla, con el nombre \texttt{actividades\_seleccionadas.csv}. No se ofrece
+otra descarga de resultados ni una vista separada de actividades descartadas.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{../images/ss.png}
-\caption{Interfaz de Streamlit y resultados de una resolución.}
+\caption{Interfaz de Streamlit: controles, indicadores, calendario y tabla
+de actividades seleccionadas.}
 \label{fig:interfaz}
 \end{figure}
 
 \subsection{Documentación}
 
-\subsubsection{Dependencias y ejecución}
+\subsubsection*{Dependencias y ejecución}
+\addcontentsline{toc}{subsubsection}{2.3.1. Dependencias y ejecución}
 
-Las dependencias se documentan en \texttt{requirements.txt} e incluyen
-\texttt{streamlit}, \texttt{pandas}, \texttt{PuLP} y \texttt{highspy}. El
-\texttt{README.md} indica la creación del entorno virtual, la instalación y la
-ejecución local mediante \texttt{python -m streamlit run streamlit\_app.py}.
+Las dependencias utilizadas se registran en \texttt{requirements.txt}: Streamlit
+para la interfaz, pandas para las tablas, PuLP para el modelo PLE y \texttt{highspy}
+como backend disponible para HiGHS. El \texttt{README.md} documenta la creación
+de un entorno virtual, la instalación y el lanzamiento con
+\begin{verbatim}
+python -m streamlit run streamlit_app.py
+\end{verbatim}
+Al abrir la dirección local
+que indica Streamlit, el programa carga \texttt{data/} y valida la instancia
+antes de habilitar una resolución.
+
+La documentación del informe está desacoplada del software: el archivo maestro
+carga las fuentes de las tres partes y el anexo mediante rutas relativas.
+Define idioma español, tipografía, tablas, fórmulas, gráficos y índice
+automático. Las ecuaciones y la explicación se mantienen
+en la Parte 1, la implementación en la Parte 2, el análisis en la Parte 3 y
+los datos completos en el anexo situado junto a la Parte 1. Esta separación
+permite editar una parte sin duplicar la estructura global.
+
+La compilación descrita en el \texttt{README.md} requiere \texttt{pdflatex}.
+Se ejecuta desde \texttt{informe/} sobre \texttt{informe.tex} dos veces: la
+primera genera el documento y resuelve los índices; la segunda fija todas las
+referencias y entradas del índice. El resultado se copia como
+\texttt{informe/informe.pdf}. La ejecución doble, junto con rutas relativas
+correctas, hace reproducible la versión entregada y evita que el PDF dependa
+de una salida generada manualmente.
