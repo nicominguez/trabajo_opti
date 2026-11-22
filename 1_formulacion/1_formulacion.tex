@@ -57,63 +57,10 @@ los tres espacios en el horizonte considerado. La instancia contiene dos
 actividades obligatorias, varias actividades de varias franjas, disponibilidad
 temporal limitada y relaciones de incompatibilidad.
 
-\subsection{Función objetivo y justificación}
-
-Se maximiza una suma ponderada de asistencia total, valoración total y número
-de actividades programadas. Cada componente se normaliza para que sea comparable
-y para que la unidad de medida no determine por sí sola la solución:
-\[
-\max Z=
-\sum_{i\in I}y_i
-\left(
-w_A\frac{a_i}{A_{\mathrm{tot}}}
-+
-w_V\frac{v_i}{V_{\mathrm{tot}}}
-+
-w_N\frac{1}{N}
-\right),
-\qquad
-w_A+w_V+w_N=1.
-\]
-
-La asistencia mide el alcance del evento y la valoración mide su calidad.
-Ambos criterios pueden favorecer conjuntos de actividades distintos: los
-talleres suelen tener mucha valoración y poco público, mientras que las charlas
-generales pueden atraer a más asistentes. El número de actividades evita
-seleccionar pocas sesiones muy caras y premia ofrecer una programación más
-completa.
-
-Sin normalizar, la asistencia podría dominar por su magnitud. Con la
-normalización, los componentes contribuyen al objetivo en una escala común y
-los pesos conservan su significado entre instancias.
-
-Los pesos son parámetros modificables y deben ser no negativos y sumar uno.
-Por defecto se utiliza $(w_A,w_V,w_N)=(0.4,0.4,0.2)$. Los escenarios de análisis
-son $(1,0,0)$ para priorizar la asistencia, $(0,1,0)$ para priorizar la
-valoración y $(0.1,0.1,0.8)$ para priorizar el número de actividades.
-
-\subsection{Ampliación y justificación}
-
-Como ampliación se incorporan incompatibilidades temporales entre actividades
-(restricción R9). Dos actividades incompatibles pueden programarse ambas, pero
-nunca en la misma franja, aunque estén asignadas a espacios distintos.
-
-Esta característica tiene sentido porque las actividades pueden compartir
-público o ponente, de modo que un asistente no podría participar en ambas
-cuando se solapan. Los pares definidos son $(3,10)$, $(12,16)$, $(9,17)$,
-$(7,18)$ y $(8,14)$.
-
-La restricción afecta tanto a la selección como a la asignación temporal.
-Por ejemplo, las actividades 7 y 18 solo están disponibles en la franja 7 y,
-por tanto, no pueden programarse conjuntamente. En una comparación auxiliar
-con el mismo presupuesto, eliminar R9 aumenta el objetivo en los tres escenarios
-analizados y permite programar 13 actividades en los escenarios de valoración
-y de número de actividades, frente a 12 con R9. La ampliación, por tanto,
-modifica realmente la programación y no es una restricción redundante.
-
-\subsection{Formulación del modelo}
-
-\subsubsection{Conjuntos}
+\subsection*{1.5. Formulación}
+\addcontentsline{toc}{subsection}{1.5. Formulación}
+\subsubsection*{1.5.1. Conjuntos}
+\addcontentsline{toc}{subsubsection}{1.5.1. Conjuntos}
 \begin{itemize}
 \item $I=\{1,\ldots,18\}$: actividades candidatas.
 \item $E$: espacios disponibles.
@@ -122,7 +69,8 @@ modifica realmente la programación y no es una restricción redundante.
 \item $P$: pares $(i,j)$ de actividades incompatibles.
 \end{itemize}
 
-\subsubsection{Parámetros}
+\subsubsection*{1.5.2. Parámetros}
+\addcontentsline{toc}{subsubsection}{1.5.2. Parámetros}
 \begin{itemize}
 \item $d_i$: duración de la actividad $i$, en franjas.
 \item $a_i$: asistencia esperada de la actividad $i$.
@@ -142,7 +90,8 @@ modifica realmente la programación y no es una restricción redundante.
 \item $V_{\mathrm{tot}}=\sum_{i\in I}v_i$: valoración total de todas las actividades.
 \end{itemize}
 
-\subsubsection{Variables}
+\subsubsection*{1.5.3. Variables}
+\addcontentsline{toc}{subsubsection}{1.5.3. Variables}
 \[
 x_{i,e,t}=
 \begin{cases}
@@ -159,7 +108,14 @@ y_i=
 \end{cases}
 \]
 
-\subsubsection{Función objetivo}
+\subsubsection*{1.5.4. Función objetivo}
+\addcontentsline{toc}{subsubsection}{1.5.4. Función objetivo}
+Se maximiza una suma ponderada de asistencia total, valoración total y número
+de actividades programadas. La asistencia mide el alcance, la valoración mide
+la calidad y el número de actividades evita una programación excesivamente
+concentrada en pocas sesiones. Cada componente se normaliza para hacer
+comparables sus unidades.
+
 \[
 \max Z=
 \sum_{i\in I}y_i
@@ -172,7 +128,13 @@ w_N\frac{1}{N}
 \right).
 \]
 
-\subsubsection{Restricciones}
+Los pesos son no negativos y cumplen
+$w_A+w_V+w_N=1$. Los valores por defecto son $(0.4,0.4,0.2)$; los escenarios
+de análisis priorizan, respectivamente, la asistencia $(1,0,0)$, la valoración
+$(0,1,0)$ y el número de actividades $(0.1,0.1,0.8)$.
+
+\subsubsection*{1.5.5. Restricciones}
+\addcontentsline{toc}{subsubsection}{1.5.5. Restricciones}
 
 \paragraph{R1. Selección única.}
 \[
@@ -240,4 +202,17 @@ Para cada par $(i,j)\in P$ y para cada franja $s\in T$:
 \sum_{t=\max(1,s-d_j+1)}^{s}x_{j,e,t}
 \leq 1.
 \]
+
+\subsubsection*{1.5.6. Ampliación}
+\addcontentsline{toc}{subsubsection}{1.5.6. Ampliación}
+
+Como ampliación se incorporan incompatibilidades temporales mediante R9.
+Dos actividades incompatibles pueden programarse, pero nunca simultáneamente,
+aunque estén asignadas a espacios distintos. Los pares definidos son
+$(3,10)$, $(12,16)$, $(9,17)$, $(7,18)$ y $(8,14)$.
+
+La restricción representa actividades que compiten por público o ponente y
+afecta tanto a la selección como a la asignación temporal. Por ejemplo, las
+actividades 7 y 18 solo están disponibles en la franja 7 y no pueden
+programarse conjuntamente.
 
