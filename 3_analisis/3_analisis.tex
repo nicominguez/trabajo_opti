@@ -1,4 +1,4 @@
-\section{Análisis, validación y conclusiones}
+\section{Análisis, validación y conclusiones --- Unai Lara Domínguez}
 
 \subsection{Expectativas previas sobre el comportamiento del modelo}
 
@@ -12,8 +12,10 @@ mismos datos y el presupuesto de 6.500 unidades:
   talleres y sesiones técnicas con alta puntuación, incluso si tienen aforo
   reducido.
 \item \textbf{Número de actividades}: $(w_A,w_V,w_N)=(0.1,0.1,0.8)$. El modelo
-  debería favorecer una programación más numerosa, formada preferentemente por
-  actividades breves y de coste moderado.
+  debería priorizar una programación más numerosa, formada preferentemente por
+  actividades breves y de coste moderado, aunque el resultado puede coincidir
+  con otro escenario si las restricciones hacen que varias selecciones sean
+  igualmente convenientes.
 \end{enumerate}
 
 \begin{table}[htbp]
@@ -58,6 +60,9 @@ El escenario de asistencia alcanza 880 asistentes, pero selecciona dos
 actividades menos que los otros escenarios y obtiene la valoración acumulada
 más baja, 33.6 puntos. También gasta 6450 unidades y deja fuera talleres
 prácticos de menor aforo.
+Además, el óptimo de asistencia no es único: existe otra solución con el mismo
+objetivo y 9 actividades. La tabla presenta una de las soluciones óptimas
+obtenidas, no una selección única impuesta por el modelo.
 
 El escenario de valoración maximiza la satisfacción acumulada (43.7 puntos) y
 programa 12 actividades. Respecto al escenario de asistencia pierde 92 asistentes,
@@ -95,7 +100,9 @@ Si se reduce el presupuesto o se introducen restricciones incompatibles, el
 modelo devuelve el estado \texttt{Infeasible}. La interfaz presenta este
 resultado como inviabilidad y no muestra una solución parcial. Con una solución
 óptima permite descargar en un único CSV la tabla de actividades seleccionadas,
-incluyendo su programación, y muestra aparte las actividades no programadas.
+incluyendo su programación. Las actividades no programadas no se muestran en
+una vista separada; se identifican comparando la instancia completa con la
+tabla de actividades seleccionadas.
 
 \subsection{Conclusiones}
 
@@ -103,8 +110,11 @@ El modelo permite automatizar una programación que sería difícil de obtener
 por tanteo debido a los solapes, las distintas duraciones y el presupuesto.
 Los resultados confirman tres prioridades diferenciadas: el escenario de
 asistencia favorece el alcance; el de valoración, la calidad acumulada; y el
-del número de actividades, una oferta más amplia sin abandonar por completo los
-otros criterios.
+del número de actividades, prioriza una oferta amplia sin abandonar por
+completo los otros criterios. En esta instancia, sin embargo, el escenario de
+número de actividades empata con el de valoración en 12 sesiones y solo supera
+al de asistencia, que selecciona 10; por tanto, una oferta más amplia no se
+cumple en todos los casos.
 
 La interfaz aporta una forma reproducible de cambiar los parámetros y comprobar
 su efecto. Para una decisión real, el escenario más adecuado no vendría
@@ -127,9 +137,3 @@ Los integrantes del grupo han definido el contexto y los datos, formulado el
 modelo, seleccionado los escenarios y validado las ejecuciones. Han comprobado
 que las ecuaciones, restricciones, resultados y afirmaciones del informe
 corresponden al código y a los archivos de entrada antes de su entrega.
-
-\paragraph{Contribución del equipo.}
-La contribución de Nieto Colás, Héctor; Mínguez Aguirre, Nicolás; y Lara
-Domínguez, Unai fue conjunta y equilibrada. Los tres participaron en el diseño
-de la instancia, la formulación, la implementación, la interpretación de
-resultados y la revisión final del informe y de la aplicación.

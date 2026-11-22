@@ -1,9 +1,8 @@
-\section{Implementación, interfaz y documentación}
+\section{Implementación, interfaz y documentación --- Nicolás Mínguez Aguirre}
 
 \subsection{Implementación}
 
-\subsubsection*{Carga y validación de datos}
-\addcontentsline{toc}{subsubsection}{2.1.1. Carga y validación de datos}
+\subsubsection{Carga y validación de datos}
 
 La implementación se divide entre \texttt{modelo.py} y
 \texttt{streamlit\_app.py}. El primer archivo contiene el acceso a datos y el
@@ -26,8 +25,7 @@ los pesos sumen uno. Los errores se agrupan en \texttt{DataValidationError};
 de este modo, un archivo mal formado no llega al solver ni produce una solución
 aparentemente válida.
 
-\subsubsection*{Construcción y resolución}
-\addcontentsline{toc}{subsubsection}{2.1.2. Construcción y resolución}
+\subsubsection{Construcción y resolución}
 
 La función \texttt{solve\_instance()} traduce las variables binarias
 $y_i$ y $x_{i,e,t}$ de la formulación a variables de PuLP. \texttt{LpVariable}
@@ -63,8 +61,7 @@ por lo que los indicadores mostrados pueden verificarse directamente.
 
 \subsection{Interfaz}
 
-\subsubsection*{Configuración y ejecución}
-\addcontentsline{toc}{subsubsection}{2.2.1. Configuración y ejecución}
+\subsubsection{Configuración y ejecución}
 
 Streamlit resulta adecuado porque el trabajo es una aplicación de decisión
 pequeña en Python: permite combinar controles, resolución y presentación sin
@@ -86,8 +83,7 @@ muestra resultados; un estado de inviabilidad muestra una advertencia clara;
 un problema de datos o del solver muestra su categoría correspondiente.
 No se presenta una solución parcial como si fuera válida.
 
-\subsubsection*{Presentación de resultados}
-\addcontentsline{toc}{subsubsection}{2.2.2. Presentación de resultados}
+\subsubsection{Presentación de resultados}
 
 La disposición conserva un orden visual coherente con la toma de decisiones:
 primero los parámetros, después los indicadores, luego el calendario y, por
@@ -120,8 +116,7 @@ de actividades seleccionadas.}
 
 \subsection{Documentación}
 
-\subsubsection*{Dependencias y ejecución}
-\addcontentsline{toc}{subsubsection}{2.3.1. Dependencias y ejecución}
+\subsubsection{Dependencias y ejecución}
 
 Las dependencias utilizadas se registran en \texttt{requirements.txt}: Streamlit
 para la interfaz, pandas para las tablas, PuLP para el modelo PLE y \texttt{highspy}

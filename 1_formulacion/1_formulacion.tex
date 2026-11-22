@@ -1,4 +1,4 @@
-\section{Contexto, datos y formulación}
+\section{Contexto, datos y formulación --- Héctor Nieto Colás}
 
 \subsection{Contexto}
 
@@ -57,10 +57,8 @@ los tres espacios en el horizonte considerado. La instancia contiene dos
 actividades obligatorias, varias actividades de varias franjas, disponibilidad
 temporal limitada y relaciones de incompatibilidad.
 
-\subsection*{1.5. Formulación}
-\addcontentsline{toc}{subsection}{1.5. Formulación}
-\subsubsection*{1.5.1. Conjuntos}
-\addcontentsline{toc}{subsubsection}{1.5.1. Conjuntos}
+\subsection{Formulación}
+\subsubsection{Conjuntos}
 \begin{itemize}
 \item $I=\{1,\ldots,18\}$: actividades candidatas.
 \item $E$: espacios disponibles.
@@ -69,8 +67,7 @@ temporal limitada y relaciones de incompatibilidad.
 \item $P$: pares $(i,j)$ de actividades incompatibles.
 \end{itemize}
 
-\subsubsection*{1.5.2. Parámetros}
-\addcontentsline{toc}{subsubsection}{1.5.2. Parámetros}
+\subsubsection{Parámetros}
 \begin{itemize}
 \item $d_i$: duración de la actividad $i$, en franjas.
 \item $a_i$: asistencia esperada de la actividad $i$.
@@ -90,8 +87,7 @@ temporal limitada y relaciones de incompatibilidad.
 \item $V_{\mathrm{tot}}=\sum_{i\in I}v_i$: valoración total de todas las actividades.
 \end{itemize}
 
-\subsubsection*{1.5.3. Variables}
-\addcontentsline{toc}{subsubsection}{1.5.3. Variables}
+\subsubsection{Variables}
 \[
 x_{i,e,t}=
 \begin{cases}
@@ -108,8 +104,7 @@ y_i=
 \end{cases}
 \]
 
-\subsubsection*{1.5.4. Función objetivo}
-\addcontentsline{toc}{subsubsection}{1.5.4. Función objetivo}
+\subsubsection{Función objetivo}
 Se maximiza una suma ponderada de asistencia total, valoración total y número
 de actividades programadas. La asistencia mide el alcance, la valoración mide
 la calidad y el número de actividades evita una programación excesivamente
@@ -133,27 +128,32 @@ $w_A+w_V+w_N=1$. Los valores por defecto son $(0.4,0.4,0.2)$; los escenarios
 de análisis priorizan, respectivamente, la asistencia $(1,0,0)$, la valoración
 $(0,1,0)$ y el número de actividades $(0.1,0.1,0.8)$.
 
-\subsubsection*{1.5.5. Restricciones}
-\addcontentsline{toc}{subsubsection}{1.5.5. Restricciones}
+\subsubsection{Restricciones}
 
 \paragraph{R1. Selección única.}
+Cada actividad se selecciona exactamente una vez o no se selecciona; por tanto,
+no puede aparecer sin asignación ni ocupar varios espacios o franjas de inicio.
 \[
 y_i=\sum_{e\in E}\sum_{t\in T}x_{i,e,t}
 \qquad\forall i\in I.
 \]
 
 \paragraph{R2. Actividades obligatorias.}
+Las actividades marcadas como obligatorias deben formar parte de la
+programación.
 \[
 y_i=1\qquad\forall i\in O.
 \]
 
 \paragraph{R3. Compatibilidad de espacio.}
+Una actividad solo puede comenzar en espacios técnicamente compatibles con ella.
 \[
 x_{i,e,t}=0\qquad
 \text{si }\mathrm{comp}(i,e)=0.
 \]
 
 \paragraph{R4. Capacidad suficiente.}
+La asistencia prevista no puede superar la capacidad del espacio asignado.
 \[
 x_{i,e,t}=0\qquad
 \text{si }a_i>\mathrm{cap}_e.
@@ -178,6 +178,8 @@ t+d_i-1>F
 \]
 
 \paragraph{R7. Presupuesto.}
+El coste total de las actividades seleccionadas no puede superar el presupuesto
+disponible.
 \[
 \sum_{i\in I}c_i y_i\leq B.
 \]
@@ -193,6 +195,8 @@ x_{i,e,t}
 \]
 
 \paragraph{R9. Incompatibilidad entre actividades.}
+Las parejas incompatibles no pueden desarrollarse simultáneamente, aunque se
+encuentren en espacios diferentes, para evitar competir por público o ponente.
 Para cada par $(i,j)\in P$ y para cada franja $s\in T$:
 \[
 \sum_{e\in E}
@@ -203,8 +207,7 @@ Para cada par $(i,j)\in P$ y para cada franja $s\in T$:
 \leq 1.
 \]
 
-\subsubsection*{1.5.6. Ampliación}
-\addcontentsline{toc}{subsubsection}{1.5.6. Ampliación}
+\subsubsection{Ampliación}
 
 Como ampliación se incorporan incompatibilidades temporales mediante R9.
 Dos actividades incompatibles pueden programarse, pero nunca simultáneamente,
