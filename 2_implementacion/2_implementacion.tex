@@ -7,7 +7,7 @@
 La instancia se carga desde los siete archivos CSV de \texttt{data/}. La
 implementación utiliza \texttt{pandas} para leer las tablas y
 \texttt{PuLP} para construir el modelo entero. El archivo
-\texttt{2\_implementacion/modelo.py} separa la carga y validación de los datos
+\texttt{modelo.py}, dentro de \texttt{2\_implementacion/}, separa la carga y validación de los datos
 de la construcción y resolución del modelo.
 
 Antes de resolver se comprueban los encabezados obligatorios, los identificadores
@@ -45,7 +45,8 @@ La interfaz se desarrolla con Streamlit en \texttt{streamlit\_app.py}. Permite
 modificar el presupuesto y los pesos de asistencia y valoración. El peso del
 número de actividades se calcula como \(w_N=1-w_A-w_V\), por lo que los tres
 pesos siempre suman uno. La interfaz muestra además la terna efectiva y su suma.
-Al pulsar el botón de resolución se indica solución óptima, inviabilidad o error.
+Al pulsar el botón de resolución se indica si existe una solución óptima, si el
+problema es inviable o si se ha producido un error.
 
 \subsubsection{Presentación de resultados}
 
@@ -55,13 +56,15 @@ ordenado por espacios y franjas, identificado con etiquetas como \texttt{D1F3},
 y una tabla con las actividades seleccionadas.
 
 La tabla detallada conserva la actividad, categoría, duración, asistencia,
-valoración, coste, espacio y franja inicial y final. Esta representación permite
-comprobar la asignación sin gráficos interactivos complejos.
+valoración, coste, espacio y franjas inicial y final. Permite comprobar la
+asignación sin gráficos complejos. La interfaz carga la instancia principal
+desde \texttt{data/} y ofrece la descarga CSV integrada de esta tabla de
+actividades seleccionadas. Al mantener los archivos de entrada separados del
+código, se puede modificar la instancia y ejecutar otra resolución compatible.
 
-La interfaz carga la instancia principal desde \texttt{data/} y permite descargar
-los resultados principales como archivos CSV. Al mantener los archivos de entrada
-separados del código, se pueden modificar los datos y ejecutar otra instancia
-compatible en el modelo.
+Las actividades no seleccionadas se muestran de forma compacta en una sección
+plegable, para cumplir el requisito de informar de los descartes sin sobrecargar
+la vista principal.
 
 \begin{figure}[htbp]
 \centering

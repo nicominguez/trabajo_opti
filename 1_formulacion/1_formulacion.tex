@@ -34,7 +34,7 @@ valores definidos por el grupo para esta instancia.
 
 \begin{table}[htbp]
 \centering
-\begin{tabular}{ll}
+\begin{tabular}{p{0.32\textwidth}p{0.58\textwidth}}
 \toprule
 Archivo & Contenido \\
 \midrule
@@ -105,9 +105,11 @@ $(7,18)$ y $(8,14)$.
 
 La restricción afecta tanto a la selección como a la asignación temporal.
 Por ejemplo, las actividades 7 y 18 solo están disponibles en la franja 7 y,
-por tanto, no pueden programarse conjuntamente. Comparando instancias con el
-mismo presupuesto, la amplitud de esta restricción puede cambiar el resultado
-de los escenarios.
+por tanto, no pueden programarse conjuntamente. En una comparación auxiliar
+con el mismo presupuesto, eliminar R9 aumenta el objetivo en los tres escenarios
+analizados y permite programar 13 actividades en los escenarios de valoración
+y de número de actividades, frente a 12 con R9. La ampliación, por tanto,
+modifica realmente la programación y no es una restricción redundante.
 
 \subsection{Formulación del modelo}
 
@@ -174,7 +176,7 @@ w_N\frac{1}{N}
 
 \paragraph{R1. Selección única.}
 \[
-y_i=\sum_{e\in E}\sum_{t\in T}x_{i,e,t}\leq 1
+y_i=\sum_{e\in E}\sum_{t\in T}x_{i,e,t}
 \qquad\forall i\in I.
 \]
 

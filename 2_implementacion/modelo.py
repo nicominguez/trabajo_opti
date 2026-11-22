@@ -68,6 +68,36 @@ def load_instance(data_dir=None):
          "num_franjas", "franjas_por_dia"],
     )
 
+    numeric_columns = (
+        (activities, ["id", "duracion", "asistencia", "valoracion", "coste", "obligatoria"]),
+        (spaces, ["capacidad"]),
+        (compatibility, ["actividad"]),
+        (activity_availability, ["actividad", "franja"]),
+        (space_availability, ["franja"]),
+        (incompatibilities, ["actividad_1", "actividad_2"]),
+    )
+    for frame, columns in numeric_columns:
+        for column in columns:
+            values = pd.to_numeric(frame[column], errors="coerce")
+            if values.isna().any():
+                raise DataValidationError(
+                    f"{column}: existen valores no numericos o vacios."
+                )
+            frame[column] = values
+
+    integer_columns = (
+        (activities, ["id", "duracion", "obligatoria"]),
+        (compatibility, ["actividad"]),
+        (activity_availability, ["actividad", "franja"]),
+        (space_availability, ["franja"]),
+        (incompatibilities, ["actividad_1", "actividad_2"]),
+    )
+    for frame, columns in integer_columns:
+        for column in columns:
+            if (frame[column] % 1 != 0).any():
+                raise DataValidationError(f"{column}: los valores deben ser enteros.")
+            frame[column] = frame[column].astype(int)
+
     if len(parameters) != 1:
         raise DataValidationError("parametros.csv debe contener una sola fila.")
     params = parameters.iloc[0].to_dict()
@@ -113,6 +143,10 @@ def load_instance(data_dir=None):
         )
     if params["presupuesto"] < 0 or params["w_A"] < 0 or params["w_V"] < 0 or params["w_N"] < 0:
         raise DataValidationError("Presupuesto y pesos deben ser no negativos.")
+    if any(value % 1 for value in (params["num_franjas"], params["franjas_por_dia"])):
+        raise DataValidationError(
+            "num_franjas y franjas_por_dia deben ser enteros."
+        )
     weight_sum = params["w_A"] + params["w_V"] + params["w_N"]
     if abs(weight_sum - 1.0) > 1e-9:
         raise DataValidationError(
@@ -165,6 +199,8 @@ def solve_instance(instance, budget=None, weights=None):
         budget = float(params["presupuesto"])
     if weights is None:
         weights = (float(params["w_A"]), float(params["w_V"]), float(params["w_N"]))
+    if budget < 0 or any(float(weight) < 0 for weight in weights):
+        raise ValueError("El presupuesto y los pesos deben ser no negativos.")
     weight_sum = sum(weights)
     if weight_sum <= 0:
         raise ValueError("Los tres pesos no pueden ser cero.")

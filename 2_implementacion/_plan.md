@@ -12,7 +12,8 @@ Convertir el modelo formulado en una implementacion PLE reproducible y una inter
 - Ejecutar el modelo y mostrar actividades, asistencia, valoracion, coste, presupuesto y calendario.
 - Mostrar una tabla con actividad, categoria, duracion, asistencia, valoracion, coste,
   espacio y franjas temporales.
-- Permitir descargar las actividades seleccionadas y el calendario en CSV.
+- Permitir descargar en un único CSV la tabla de actividades seleccionadas,
+  incluyendo su espacio y franjas.
 - Incorporar una captura de la interfaz en el informe.
 ### Instrucciones (`README.md`)
 - Documentar dependencias y ejecucion local de Streamlit.
