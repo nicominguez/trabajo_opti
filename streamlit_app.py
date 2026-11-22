@@ -62,16 +62,35 @@ if st.button("Resolver", type="primary"):
                 f"F{((slot - 1) % slots_per_day) + 1}"
                 for slot in range(1, horizon + 1)
             ]
-            calendar = pd.DataFrame("", index=list(space_names.values()), columns=columns)
+            calendar = pd.DataFrame(
+                [[[] for _ in columns] for _ in space_names],
+                index=list(space_names.values()),
+                columns=columns,
+            )
 
             activity_details = instance["actividades"].set_index("id")
+            activity_palette = [
+                "#2563EB", "#DC2626", "#059669", "#7C3AED",
+                "#EA580C", "#0891B2", "#DB2777", "#65A30D",
+                "#9333EA", "#CA8A04", "#0D9488", "#4F46E5",
+                "#E11D48", "#0369A1", "#16A34A", "#C026D3",
+                "#B45309", "#6D28D9",
+            ]
+            activity_colors = {
+                int(activity_id): activity_palette[index % len(activity_palette)]
+                for index, activity_id in enumerate(instance["actividades"]["id"])
+            }
+            activity_ids_by_name = {
+                str(row.nombre): int(row.id)
+                for row in instance["actividades"].itertuples()
+            }
             selected_rows = []
             for _, assignment in result["assignments"].iterrows():
                 activity_id = int(assignment["actividad"])
                 details = activity_details.loc[activity_id]
                 selected_rows.append({
                     "ID": activity_id,
-                    "Actividad": assignment["nombre"],
+                    "Actividad": [str(assignment["nombre"])],
                     "Categoria": details["categoria"],
                     "Duracion": int(details["duracion"]),
                     "Asistencia": int(details["asistencia"]),
@@ -86,28 +105,59 @@ if st.button("Resolver", type="primary"):
                     slot_in_day = (slot - 1) % slots_per_day + 1
                     column = f"D{day}F{slot_in_day}"
                     current = calendar.loc[assignment["nombre_espacio"], column]
-                    calendar.loc[assignment["nombre_espacio"], column] = (
-                        f"{current}, {assignment['nombre']}".strip(", ")
-                        if current
-                        else assignment["nombre"]
-                    )
+                    if assignment["nombre"] not in current:
+                        current.append(str(assignment["nombre"]))
 
             st.subheader("Calendario")
-            st.table(calendar)
+            calendar_config = {}
+            calendar_options = list(dict.fromkeys(
+                name
+                for row in calendar.to_numpy().flatten()
+                for name in row
+            ))
+            for column in calendar.columns:
+                calendar_config[column] = st.column_config.MultiselectColumn(
+                    column,
+                    options=calendar_options,
+                    color=[
+                        activity_colors[activity_ids_by_name[name]]
+                        for name in calendar_options
+                    ],
+                    width="small",
+                )
+            st.dataframe(
+                calendar,
+                hide_index=False,
+                use_container_width=True,
+                column_config=calendar_config,
+            )
 
             table = pd.DataFrame(selected_rows)
             st.subheader("Actividades seleccionadas")
-            st.dataframe(table, hide_index=True, use_container_width=True)
+            table_options = list(dict.fromkeys(
+                name
+                for names in table["Actividad"]
+                for name in names
+            ))
+            st.dataframe(
+                table,
+                hide_index=True,
+                use_container_width=True,
+                column_config={
+                    "Actividad": st.column_config.MultiselectColumn(
+                        "Actividad",
+                        options=table_options,
+                        color=[
+                            activity_colors[activity_ids_by_name[name]]
+                            for name in table_options
+                        ],
+                        width="medium",
+                    ),
+                },
+            )
             st.download_button(
                 "Descargar tabla CSV",
                 table.to_csv(index=False).encode("utf-8"),
                 file_name="actividades_seleccionadas.csv",
                 mime="text/csv",
             )
-            discarded = instance["actividades"][
-                ~instance["actividades"]["id"].isin(result["selected"])
-            ][["id", "nombre", "categoria"]].rename(
-                columns={"id": "ID", "nombre": "Actividad", "categoria": "Categoria"}
-            )
-            with st.expander(f"Actividades no programadas ({len(discarded)})"):
-                st.table(discarded)
