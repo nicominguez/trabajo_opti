@@ -2,6 +2,8 @@
 \addcontentsline{toc}{section}{Anexo A. Datos de la instancia}
 
 \subsection*{A.1 Actividades}
+Esta tabla describe las actividades candidatas, sus características, costes,
+obligatoriedad, espacios compatibles y franjas disponibles.
 \begin{table}[htbp]
 \centering
 \scriptsize
@@ -35,6 +37,8 @@ Id & Actividad & Dur. & Categoría & Asist. & Valor. & Coste & Obl. & Esp. & Fra
 \end{table}
 
 \subsection*{A.2 Espacios y compatibilidades}
+Esta tabla recoge los espacios disponibles, su capacidad y las franjas en las
+que permanecen abiertos.
 \begin{table}[htbp]
 \centering
 \begin{tabular}{llrl}
@@ -55,6 +59,8 @@ la compatibilidad de tipo debe combinarse con la capacidad: las actividades
 80 plazas y no pueden asignarse a ese espacio.
 
 \subsection*{A.3 Incompatibilidades y parámetros}
+Esta tabla resume las parejas de actividades incompatibles y los parámetros
+globales utilizados por el modelo.
 \begin{table}[htbp]
 \centering
 \begin{tabular}{ll}
@@ -68,4 +74,54 @@ Franjas & 8; 4 franjas por día \\
 \bottomrule
 \end{tabular}
 \caption{Parámetros globales e incompatibilidades.}
+\end{table}
+
+\clearpage
+\section*{Anexo B. Contribución de cada integrante}
+\addcontentsline{toc}{section}{Anexo B. Contribución de cada integrante}
+
+La siguiente tabla resume las tareas realizadas por cada integrante a partir
+del plan de trabajo de cada parte.
+
+\begin{table}[htbp]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{p{0.22\textwidth}p{0.12\textwidth}p{0.56\textwidth}}
+\toprule
+\textbf{Integrante} & \textbf{Parte} & \textbf{Contribución} \\
+\midrule
+Héctor Nieto Colás & 1 &
+\textbf{Objetivo:} definir el contexto, los datos y el modelo matemático que
+selecciona, asigna y programa las actividades del evento.
+\newline
+\textbf{Asignaciones:} elegir y describir el contexto; presentar franjas,
+espacios, actividades y restricciones naturales; caracterizar actividades y
+espacios; aportar los valores y documentar los CSV externos; incluir las tablas
+completas en el anexo; definir y justificar los tres criterios y sus pesos;
+incorporar y justificar las incompatibilidades temporales; y definir conjuntos,
+parámetros, variables, función objetivo y restricciones R1--R9. \\
+\midrule
+Nicolás Mínguez Aguirre & 2 &
+\textbf{Objetivo:} convertir el modelo formulado en una implementación PLE
+reproducible y una interfaz Streamlit mínima.
+\newline
+\textbf{Asignaciones:} cargar y validar los siete CSV; construir y resolver el
+modelo binario con PuLP e HiGHS; devolver selección, asignación e indicadores;
+distinguir solución óptima, inviabilidad y errores; implementar la interfaz,
+sus controles, calendario, tablas y descarga CSV; incorporar la captura; y
+documentar la ejecución de Streamlit y la compilación del informe. \\
+\midrule
+Unai Lara Domínguez & 3 &
+\textbf{Objetivo:} redactar el análisis de los resultados y documentar el
+software utilizado.
+\newline
+\textbf{Asignaciones:} redactar las expectativas de cada escenario; ejecutar
+el modelo y tabular los indicadores; comentar los compromisos entre criterios;
+documentar la reproducibilidad; verificar la gestión de inviabilidad, la
+exportación CSV y la coincidencia entre interfaz e informe; incorporar la
+captura; sintetizar el valor del modelo y los compromisos; y redactar la
+declaración de inteligencia artificial y autoría humana. \\
+\bottomrule
+\end{tabular}
+\caption{Contribución individual según los planes de trabajo de las tres partes.}
 \end{table}

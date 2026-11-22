@@ -161,3 +161,24 @@ if st.button("Resolver", type="primary"):
                 file_name="actividades_seleccionadas.csv",
                 mime="text/csv",
             )
+
+            discarded = instance["actividades"][
+                ~instance["actividades"]["id"].isin(result["selected"])
+            ][
+                ["id", "nombre", "categoria", "duracion", "asistencia",
+                 "valoracion", "coste"]
+            ].rename(columns={
+                "id": "ID",
+                "nombre": "Actividad",
+                "categoria": "Categoria",
+                "duracion": "Duracion",
+                "asistencia": "Asistencia",
+                "valoracion": "Valoracion",
+                "coste": "Coste",
+            })
+            with st.expander("Actividades descartadas"):
+                st.dataframe(
+                    discarded,
+                    hide_index=True,
+                    use_container_width=True,
+                )

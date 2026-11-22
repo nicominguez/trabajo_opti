@@ -98,11 +98,11 @@ completar la resolución.
 
 Si se reduce el presupuesto o se introducen restricciones incompatibles, el
 modelo devuelve el estado \texttt{Infeasible}. La interfaz presenta este
-resultado como inviabilidad y no muestra una solución parcial. Con una solución
-óptima permite descargar en un único CSV la tabla de actividades seleccionadas,
-incluyendo su programación. Las actividades no programadas no se muestran en
-una vista separada; se identifican comparando la instancia completa con la
-tabla de actividades seleccionadas.
+resultado como inviabilidad y no muestra una solución parcial. Se verificó
+también que, cuando existe una solución óptima, la tabla de actividades
+seleccionadas y su exportación CSV coinciden con la asignación devuelta por el
+motor. La interfaz incluye además un desplegable con las actividades
+descartadas.
 
 \subsection{Conclusiones}
 
@@ -116,6 +116,16 @@ número de actividades empata con el de valoración en 12 sesiones y solo supera
 al de asistencia, que selecciona 10; por tanto, una oferta más amplia no se
 cumple en todos los casos.
 
+El empate a 12 actividades no es una contradicción ni indica un error del
+modelo. Los escenarios no maximizan únicamente el mismo indicador: el de
+valoración prioriza la suma de puntuaciones y el de número de actividades
+asigna un peso mucho mayor al recuento, con asistencia y valoración como
+criterios secundarios. Las restricciones de presupuesto, disponibilidad,
+capacidad e incompatibilidad hacen posible que ambos objetivos alcancen el
+mismo número máximo de actividades, aunque seleccionen conjuntos distintos.
+El modelo no contiene ninguna condición que obligue al escenario de cantidad a
+superar estrictamente a los demás.
+
 La interfaz aporta una forma reproducible de cambiar los parámetros y comprobar
 su efecto. Para una decisión real, el escenario más adecuado no vendría
 determinado únicamente por el valor máximo del objetivo, sino por la preferencia
@@ -127,10 +137,12 @@ Se ha utilizado una herramienta de inteligencia artificial generativa como apoyo
 durante la redacción y la implementación del trabajo.
 
 \subsubsection{Ámbitos de asistencia}
-La asistencia se ha limitado a revisar la estructura del informe, corregir
-formato y redacción en LaTeX, sugerir mejoras de legibilidad y ayudar a depurar
-errores sintácticos en Python. Las herramientas no realizaron por sí mismas la
-selección de datos, la formulación ni el análisis de los resultados.
+Se utilizaron agentes de inteligencia artificial como apoyo para tareas de
+LaTeX y código, además de GitHub para el control de versiones. La asistencia
+se limitó a revisar la estructura del informe, corregir formato y redacción,
+sugerir mejoras de legibilidad y ayudar a depurar errores sintácticos en
+Python. Las herramientas no realizaron por sí mismas la selección de datos, la
+formulación ni el análisis de los resultados.
 
 \subsubsection{Supervisión y autoría humana}
 Los integrantes del grupo han definido el contexto y los datos, formulado el

@@ -2,6 +2,12 @@
 
 **Trabajo de la asignatura Optimización I · Universidad Pública de Navarra (UPNA) · Curso 2026/27**
 
+## Aplicación e informe
+
+[Abrir la aplicación web](https://nicominguez-trabajo-opti-streamlit-app-bcagre.streamlit.app/)
+
+[Descargar el informe en PDF](informe/informe.pdf)
+
 ## Ejecución de la aplicación
 
 Desde la raíz del repositorio, cree el entorno virtual, instale las
