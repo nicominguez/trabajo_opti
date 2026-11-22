@@ -1,0 +1,241 @@
+\section{Contexto, datos y formulación}
+
+\subsection{Contexto}
+
+Las Jornadas de Ciencia de Datos son un congreso de dos días dividido en ocho
+franjas temporales: las franjas 1--4 corresponden al primer día y las 5--8 al
+segundo. Se dispone de tres espacios: el Auditorio (200 plazas), el Aula de
+ordenadores (40 plazas) y la Sala de seminarios (80 plazas).
+
+La organización dispone de 18 actividades candidatas clasificadas en aprendizaje
+automático, estadística e ingeniería de datos. Debe decidir qué actividades se
+realizan y en qué espacio y franja comienza cada una. La decisión es real porque
+no pueden programarse todas las actividades: el coste total asciende a 12.050
+unidades, mientras que el presupuesto disponible es de 6.500.
+
+El contexto aporta las siguientes condiciones:
+\begin{itemize}
+\item la conferencia inaugural y la de clausura son obligatorias;
+\item los talleres y el \emph{hackathon} duran varias franjas y solo pueden
+      celebrarse en el Aula de ordenadores;
+\item las actividades con asistencia prevista superior a 80 personas no caben
+      en la Sala de seminarios;
+\item algunos ponentes invitados solo están disponibles en determinadas franjas;
+\item existen actividades que compiten por el mismo público o ponente y no deben
+      coincidir.
+\end{itemize}
+
+\subsection{Datos}
+
+Los datos están separados del código en siete archivos CSV dentro de
+\texttt{data/}, de forma que pueda resolverse cualquier otra instancia con el
+mismo formato. Las estimaciones de costes, asistencias y valoraciones son los
+valores definidos por el grupo para esta instancia.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{ll}
+\toprule
+Archivo & Contenido \\
+\midrule
+\texttt{actividades.csv} & Duración, categoría, asistencia, valoración,
+coste y obligatoriedad \\
+\texttt{espacios.csv} & Capacidad de cada espacio \\
+\texttt{compat\_espacios.csv} & Espacios compatibles con cada actividad \\
+\texttt{disp\_actividades.csv} & Franjas disponibles de cada actividad \\
+\texttt{disp\_espacios.csv} & Franjas disponibles de cada espacio \\
+\texttt{incompatibilidades.csv} & Pares de actividades incompatibles \\
+\texttt{parametros.csv} & Presupuesto, pesos y horizonte temporal \\
+\bottomrule
+\end{tabular}
+\caption{Archivos de datos de la instancia.}
+\end{table}
+
+El problema tiene una decisión real porque el coste total supera el presupuesto
+y las duraciones suman 27 franjas, más que las 21 ocupaciones disponibles entre
+los tres espacios en el horizonte considerado. La instancia contiene dos
+actividades obligatorias, varias actividades de varias franjas, disponibilidad
+temporal limitada y relaciones de incompatibilidad.
+
+\subsection{Función objetivo y justificación}
+
+Se maximiza una suma ponderada de asistencia total, valoración total y número
+de actividades programadas. Cada componente se normaliza para que sea comparable
+y para que la unidad de medida no determine por sí sola la solución:
+\[
+\max Z=
+\sum_{i\in I}y_i
+\left(
+w_A\frac{a_i}{A_{\mathrm{tot}}}
++
+w_V\frac{v_i}{V_{\mathrm{tot}}}
++
+w_N\frac{1}{N}
+\right),
+\qquad
+w_A+w_V+w_N=1.
+\]
+
+La asistencia mide el alcance del evento y la valoración mide su calidad.
+Ambos criterios pueden favorecer conjuntos de actividades distintos: los
+talleres suelen tener mucha valoración y poco público, mientras que las charlas
+generales pueden atraer a más asistentes. El número de actividades evita
+seleccionar pocas sesiones muy caras y premia ofrecer una programación más
+completa.
+
+Sin normalizar, la asistencia podría dominar por su magnitud. Con la
+normalización, los componentes contribuyen al objetivo en una escala común y
+los pesos conservan su significado entre instancias.
+
+Los pesos son parámetros modificables y deben ser no negativos y sumar uno.
+Por defecto se utiliza $(w_A,w_V,w_N)=(0.4,0.4,0.2)$. Los escenarios de análisis
+son $(1,0,0)$ para priorizar la asistencia, $(0,1,0)$ para priorizar la
+valoración y $(0.1,0.1,0.8)$ para priorizar el número de actividades.
+
+\subsection{Ampliación y justificación}
+
+Como ampliación se incorporan incompatibilidades temporales entre actividades
+(restricción R9). Dos actividades incompatibles pueden programarse ambas, pero
+nunca en la misma franja, aunque estén asignadas a espacios distintos.
+
+Esta característica tiene sentido porque las actividades pueden compartir
+público o ponente, de modo que un asistente no podría participar en ambas
+cuando se solapan. Los pares definidos son $(3,10)$, $(12,16)$, $(9,17)$,
+$(7,18)$ y $(8,14)$.
+
+La restricción afecta tanto a la selección como a la asignación temporal.
+Por ejemplo, las actividades 7 y 18 solo están disponibles en la franja 7 y,
+por tanto, no pueden programarse conjuntamente. Comparando instancias con el
+mismo presupuesto, la amplitud de esta restricción puede cambiar el resultado
+de los escenarios.
+
+\subsection{Formulación del modelo}
+
+\subsubsection{Conjuntos}
+\begin{itemize}
+\item $I=\{1,\ldots,18\}$: actividades candidatas.
+\item $E$: espacios disponibles.
+\item $T=\{1,\ldots,F\}$: franjas temporales.
+\item $O\subseteq I$: actividades obligatorias.
+\item $P$: pares $(i,j)$ de actividades incompatibles.
+\end{itemize}
+
+\subsubsection{Parámetros}
+\begin{itemize}
+\item $d_i$: duración de la actividad $i$, en franjas.
+\item $a_i$: asistencia esperada de la actividad $i$.
+\item $v_i$: valoración de la actividad $i$.
+\item $c_i$: coste de la actividad $i$.
+\item $\mathrm{cap}_e$: capacidad del espacio $e$.
+\item $B$: presupuesto máximo.
+\item $\mathrm{comp}(i,e)=1$ si $i$ es compatible con $e$, y 0 en otro caso.
+\item $\mathrm{dispA}(i,s)=1$ si $i$ puede celebrarse en la franja $s$, y 0 en otro caso.
+\item $\mathrm{dispE}(e,s)=1$ si $e$ está abierto en la franja $s$, y 0 en otro caso.
+\item $F=8$: número de franjas.
+\item $FD=4$: número de franjas por día.
+\item $\mathrm{dia}(t)=\lceil t/FD\rceil$: día correspondiente a la franja $t$.
+\item $w_A,w_V,w_N$: pesos no negativos de los tres criterios, con suma igual a uno.
+\item $N=|I|$: número total de actividades candidatas.
+\item $A_{\mathrm{tot}}=\sum_{i\in I}a_i$: asistencia total de todas las actividades.
+\item $V_{\mathrm{tot}}=\sum_{i\in I}v_i$: valoración total de todas las actividades.
+\end{itemize}
+
+\subsubsection{Variables}
+\[
+x_{i,e,t}=
+\begin{cases}
+1,&\text{si la actividad }i\text{ comienza en el espacio }e
+\text{ en la franja }t,\\
+0,&\text{en otro caso}.
+\end{cases}
+\]
+\[
+y_i=
+\begin{cases}
+1,&\text{si la actividad }i\text{ se programa},\\
+0,&\text{en otro caso}.
+\end{cases}
+\]
+
+\subsubsection{Función objetivo}
+\[
+\max Z=
+\sum_{i\in I}y_i
+\left(
+w_A\frac{a_i}{A_{\mathrm{tot}}}
++
+w_V\frac{v_i}{V_{\mathrm{tot}}}
++
+w_N\frac{1}{N}
+\right).
+\]
+
+\subsubsection{Restricciones}
+
+\paragraph{R1. Selección única.}
+\[
+y_i=\sum_{e\in E}\sum_{t\in T}x_{i,e,t}\leq 1
+\qquad\forall i\in I.
+\]
+
+\paragraph{R2. Actividades obligatorias.}
+\[
+y_i=1\qquad\forall i\in O.
+\]
+
+\paragraph{R3. Compatibilidad de espacio.}
+\[
+x_{i,e,t}=0\qquad
+\text{si }\mathrm{comp}(i,e)=0.
+\]
+
+\paragraph{R4. Capacidad suficiente.}
+\[
+x_{i,e,t}=0\qquad
+\text{si }a_i>\mathrm{cap}_e.
+\]
+
+\paragraph{R5. Disponibilidad de actividad y espacio.}
+La disponibilidad se exige para todas las franjas ocupadas:
+\[
+x_{i,e,t}\leq
+\mathrm{dispA}(i,s)\,\mathrm{dispE}(e,s),
+\qquad
+\forall s\in\{t,\ldots,t+d_i-1\}.
+\]
+
+\paragraph{R6. Horizonte y límite diario.}
+\[
+x_{i,e,t}=0
+\quad\text{si}\quad
+t+d_i-1>F
+\quad\text{o}\quad
+\mathrm{dia}(t)\neq\mathrm{dia}(t+d_i-1).
+\]
+
+\paragraph{R7. Presupuesto.}
+\[
+\sum_{i\in I}c_i y_i\leq B.
+\]
+
+\paragraph{R8. Ocupación de un espacio.}
+Una actividad que comienza en $t$ ocupa las franjas $t,\ldots,t+d_i-1$:
+\[
+\sum_{i\in I}
+\sum_{t=\max(1,s-d_i+1)}^{s}
+x_{i,e,t}
+\leq 1
+\qquad\forall e\in E,\;\forall s\in T.
+\]
+
+\paragraph{R9. Incompatibilidad entre actividades.}
+Para cada par $(i,j)\in P$ y para cada franja $s\in T$:
+\[
+\sum_{e\in E}
+\sum_{t=\max(1,s-d_i+1)}^{s}x_{i,e,t}
++
+\sum_{e\in E}
+\sum_{t=\max(1,s-d_j+1)}^{s}x_{j,e,t}
+\leq 1.
+\]
+

@@ -1,11 +1,11 @@
-# Planificacion optima de un evento
+# Modelo de optimización para la planificación de eventos
 
-Proyecto minimo de programacion lineal entera para seleccionar y programar actividades.
+**Trabajo de la asignatura Optimización I · Universidad Pública de Navarra (UPNA) · Curso 2026/27**
 
-## Sitio de la aplicacion
+## Ejecución de la aplicación
 
-Desde la raíz del repositorio, crear el entorno virtual, instalar las
-dependencias y ejecutar Streamlit:
+Desde la raíz del repositorio, cree el entorno virtual, instale las
+dependencias y ejecute Streamlit:
 
 ```bash
 python3 -m venv .venv
@@ -15,20 +15,22 @@ python -m pip install -r requirements.txt
 python -m streamlit run streamlit_app.py
 ```
 
-Abrir la dirección indicada por Streamlit, normalmente
-`http://localhost:8501`. La aplicación utiliza los CSV de `data/`.
+Abra la dirección indicada por Streamlit, normalmente
+`http://localhost:8501`. La aplicación carga y valida los archivos CSV
+de `data/`.
 
-## Crear el PDF del informe
+## Compilación del informe en LaTeX
 
-Instalar primero una distribución LaTeX compatible con `pdflatex`, como
-MacTeX/TeX Live en macOS o TeX Live/MiKTeX en Linux y Windows. Después,
-compilar dos veces desde la raíz del repositorio:
+Instale una distribución de LaTeX que incluya `pdflatex` y, desde la raíz
+del repositorio, ejecute:
 
 ```bash
 cd informe
-pdflatex -interaction=nonstopmode -halt-on-error informe.tex
-pdflatex -interaction=nonstopmode -halt-on-error informe.tex
+mkdir .build
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory=.build informe.tex
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory=.build informe.tex
+mv .build/informe.pdf . && rm -r .build
+cd ..
 ```
 
-El segundo pase resuelve referencias cruzadas e índices. El PDF generado
-se guarda como `informe/informe.pdf`.
+El informe se genera en `informe/informe.pdf`.

@@ -1,23 +1,17 @@
 # Plan de la Parte 3
-
 ## Objetivo
-
-Comprobar el funcionamiento del modelo y analizar compromisos entre los tres criterios.
-
+Redactar el informe  que analiza los resultados del modelo y documenta el software utilizado.
 ## Asignaciones
-
-- Definir tres escenarios comparables:
-  - prioridad a la asistencia: `(1, 0, 0)`;
-  - prioridad a la valoracion: `(0, 1, 0)`;
-  - prioridad al numero de actividades: `(0.1, 0.1, 0.8)`.
-- Antes de resolver, escribir una expectativa breve para cada escenario.
-- Mantener presupuesto, datos y horizonte constantes entre escenarios.
-- Comparar asistencia, valoracion, numero de actividades, coste y asignaciones.
-- Explicar las diferencias resultantes sin confundir una mejora local con una mejora global.
-- Verificar la reproducibilidad de la instancia principal.
-
-## Entregables
-
-- Tabla comparativa de los tres escenarios.
-- Comentario razonado sobre los compromisos.
-- Conclusiones sobre la utilidad del modelo.
+### Analisis de escenarios
+- Redactar las expectativas previas de cada escenario antes de resolverlo.
+- Ejecutar el modelo y tabular los indicadores clave por escenario.
+- Comentar los compromisos (trade-offs) entre criterios.
+### Reproducibilidad
+- Remitir al `README.md` para la ejecucion y la compilacion.
+- Verificar la gestion de inviabilidad y la exportacion CSV.
+- Comprobar que los indicadores de la interfaz coinciden con los del informe.
+- Incorporar una captura de la interfaz.
+### Conclusiones
+- Sintetizar el valor del modelo y los compromisos encontrados.
+### Declaracion de IA
+- Indicar los ambitos de asistencia y la autoria humana del trabajo.

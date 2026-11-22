@@ -1,0 +1,71 @@
+\section*{Anexo A. Datos de la instancia}
+\addcontentsline{toc}{section}{Anexo A. Datos de la instancia}
+
+\subsection*{A.1 Actividades}
+\begin{table}[htbp]
+\centering
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{rlccrrrrrl}
+\toprule
+Id & Actividad & Dur. & Categoría & Asist. & Valor. & Coste & Obl. & Esp. & Franjas \\
+\midrule
+1 & Conferencia inaugural: IA y sociedad & 1 & ML & 180 & 4.2 & 1200 & Sí & E1 & 1--2 \\
+2 & Conferencia de clausura: datos y ética & 1 & Estadística & 160 & 4.0 & 1000 & Sí & E1 & 7--8 \\
+3 & Taller de redes neuronales & 3 & ML & 35 & 4.8 & 900 & No & E2 & 1,2,3,5--8 \\
+4 & Taller de pandas y limpieza de datos & 2 & Ingeniería & 38 & 4.2 & 500 & No & E2 & Todas \\
+5 & Hackathon de datos & 3 & Ingeniería & 40 & 4.9 & 1100 & No & E2 & 5--8 \\
+6 & Taller de inferencia bayesiana & 2 & Estadística & 30 & 4.7 & 550 & No & E2 & Todas \\
+7 & Charla: IA generativa & 1 & ML & 190 & 3.6 & 1800 & No & E1 & 7 \\
+8 & Charla: pipelines de datos en producción & 1 & Ingeniería & 45 & 3.0 & 350 & No & E1,E3 & Todas \\
+9 & Charla: series temporales & 1 & Estadística & 40 & 3.0 & 250 & No & E1,E3 & 4 \\
+10 & Mesa redonda: datos y empleo & 2 & Ingeniería & 110 & 3.4 & 900 & No & E1 & 2--4 \\
+11 & Charla: visualización de datos & 1 & Estadística & 35 & 2.8 & 250 & No & E1,E3 & Todas \\
+12 & Charla: aprendizaje por refuerzo & 1 & ML & 50 & 3.2 & 350 & No & E1,E3 & 6--8 \\
+13 & Taller de SQL avanzado & 2 & Ingeniería & 30 & 4.0 & 400 & No & E2 & Todas \\
+14 & Charla: Big Data con Spark & 1 & Ingeniería & 60 & 3.5 & 450 & No & E1,E3 & 1--4 \\
+15 & Charla: contrastes y A/B testing & 1 & Estadística & 30 & 2.7 & 200 & No & E1,E3 & Todas \\
+16 & Charla: explicabilidad en ML & 1 & ML & 85 & 3.6 & 500 & No & E1 & 6--8 \\
+17 & Seminario de estadística espacial & 2 & Estadística & 45 & 3.0 & 350 & No & E1,E3 & 3--4 \\
+18 & Charla: ética y sesgos algorítmicos & 1 & ML & 75 & 4.0 & 1000 & No & E1,E3 & 7 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{Actividades de la instancia principal.}
+\end{table}
+
+\subsection*{A.2 Espacios y compatibilidades}
+\begin{table}[htbp]
+\centering
+\begin{tabular}{llrl}
+\toprule
+Id & Espacio & Capacidad & Franjas abiertas \\
+\midrule
+E1 & Auditorio & 200 & 1--8 \\
+E2 & Aula de ordenadores & 40 & 1,2,3,5--8 \\
+E3 & Sala de seminarios & 80 & 2,3,4,6--8 \\
+\bottomrule
+\end{tabular}
+\caption{Espacios de la instancia principal.}
+\end{table}
+
+Las compatibilidades se almacenan en \texttt{compat\_espacios.csv}. Además,
+la compatibilidad de tipo debe combinarse con la capacidad: las actividades
+7, 10 y 16 son compatibles con E3 por tipo, pero su asistencia supera las
+80 plazas y no pueden asignarse a ese espacio.
+
+\subsection*{A.3 Incompatibilidades y parámetros}
+\begin{table}[htbp]
+\centering
+\begin{tabular}{ll}
+\toprule
+Tipo & Valor \\
+\midrule
+Incompatibilidades & (3,10), (12,16), (9,17), (7,18), (8,14) \\
+Presupuesto & 6500 \\
+Pesos por defecto & $w_A=0.4$, $w_V=0.4$, $w_N=0.2$ \\
+Franjas & 8; 4 franjas por día \\
+\bottomrule
+\end{tabular}
+\caption{Parámetros globales e incompatibilidades.}
+\end{table}

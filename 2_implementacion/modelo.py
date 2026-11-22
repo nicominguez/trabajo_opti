@@ -113,6 +113,11 @@ def load_instance(data_dir=None):
         )
     if params["presupuesto"] < 0 or params["w_A"] < 0 or params["w_V"] < 0 or params["w_N"] < 0:
         raise DataValidationError("Presupuesto y pesos deben ser no negativos.")
+    weight_sum = params["w_A"] + params["w_V"] + params["w_N"]
+    if abs(weight_sum - 1.0) > 1e-9:
+        raise DataValidationError(
+            "Los pesos w_A, w_V y w_N deben sumar 1."
+        )
 
     if not set(compatibility["actividad"]).issubset(activity_ids):
         raise DataValidationError("compat_espacios.csv contiene una actividad desconocida.")

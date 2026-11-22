@@ -1,0 +1,112 @@
+\section{Análisis, validación y conclusiones}
+
+\subsection{Expectativas previas sobre el comportamiento del modelo}
+
+Antes de proceder a la resolución numérica de la función objetivo, se analizan cualitativamente las expectativas teóricas para cada uno de los tres escenarios planteados, según las prioridades fijadas por la organización:
+
+\begin{enumerate}
+    \item \textbf{Escenario 1 - Priorización de Asistencia ($w_A = 1{,}0, w_V = 0{,}0, w_N = 0{,}0$):} 
+    Se espera que el modelo seleccione las actividades de gran formato orientadas al Auditorio (E1) — como la \textit{Conferencia inaugural}, la de \textit{Clausura} o la \textit{Charla de IA generativa} — para maximizar el número total de asistentes. Esto ocurrirá a costa de descartar talleres específicos de menor aforo e inscribir un menor número total de actividades, debido al elevado coste de contratación de estos ponentes de gran alcance.
+
+    \item \textbf{Escenario 2 - Priorización de Valoración ($w_V = 1{,}0, w_A = 0{,}0, w_N = 0{,}0$):} 
+    Se anticipa una mayor concentración en talleres técnicos y prácticos de alta calidad percibida (como el \textit{Taller de redes neuronales} o el \textit{Hackathon de datos} en el Aula de Ordenadores E2). Aunque estas sesiones cuentan con un aforo máximo reducido (40 plazas), el modelo priorizará la excelencia cualitativa percibida sobre el volumen masivo de participantes.
+
+    \item \textbf{Escenario 3 - Priorización del Número de Actividades ($w_N = 0{,}8, w_A = 0{,}1, w_V = 0{,}1$):} 
+    Se espera una programación significativamente más densa, fundamentada en actividades de corta duración (1 franja horaria) y bajo coste económico. El objetivo prioritario en este caso es maximizar la ocupación de huecos del calendario disponible respetando el límite presupuestario de $6.500~\text{€}$.
+\end{enumerate}
+
+\begin{table}[htbp]
+\centering
+\caption{Tabla comparativa de indicadores clave por escenario ($B = 6.500~\text{€}$).}
+\label{tab:comparativa_escenarios}
+\renewcommand{\arraystretch}{1.3}
+\setlength{\aboverulesep}{0pt}
+\setlength{\belowrulesep}{0pt}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l c c c|}
+\toprule
+\textbf{Indicador Clave} & \textbf{Escenario 1 (Asistencia)} & \textbf{Escenario 2 (Valoración)} & \textbf{Escenario 3 (Nº Actividades)} \\
+\midrule
+\textbf{Pesos ($w_A / w_V / w_N$)} & $1{,}0 / 0{,}0 / 0{,}0$ & $0{,}0 / 1{,}0 / 0{,}0$ & $0{,}1 / 0{,}1 / 0{,}8$ \\
+\textbf{Actividades programadas} & 10 & 12 & 12 \\
+\textbf{Asistencia total esperada} & 880 personas & 788 personas & 863 personas \\
+\textbf{Valoración total acumulada} & 33{,}6 puntos & 43{,}7 puntos & 42{,}3 puntos \\
+\textbf{Presupuesto ejecutado} & 6.450~\text{€} & 6.500~\text{€} & 6.500~\text{€} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Comentario razonado de compromisos (\textit{Trade-offs})}
+
+A partir de la comparación cualitativa y cuantitativa de los resultados, se extraen los siguientes compromisos clave en la toma de decisiones:
+
+\begin{itemize}
+    \item \textbf{Tensión entre Asistencia y Valoración:} 
+    La maximización de la asistencia (Escenario 1) concentra el presupuesto en ponencias de gran formato en el Auditorio (E1) con costes elevados y duraciones reducidas. Aunque se alcanza la asistencia máxima de $880$~asistentes, se dejan fuera talleres prácticos de menor aforo que aportan mayor satisfacción individual. En comparación directa con el Escenario 2, la estrategia masiva permite ganar $+92$~asistentes, pero a su vez implica la pérdida de $10{,}1$~puntos de valoración total acumulada y $2$~actividades en el programa.
+
+    \item \textbf{Impacto del Criterio de Cantidad:} 
+    El Escenario 3 alcanza un total de $12$~actividades programadas, igualando la cifra del Escenario 2. Sin embargo, al incorporar pequeñas ponderaciones para asistencia y valoración ($w_A = 0{,}1, w_V = 0{,}1$), logra un mejor equilibrio en el alcance de público ($863$ vs. $788$~asistentes) y mantiene una valoración elevada ($42{,}3$~puntos). Esto demuestra que el número de actividades por sí solo es un criterio menos discriminante que la calidad o el alcance si no se combina con pesos de equilibrio.
+\end{itemize}
+
+\subsection{Reproducibilidad técnica y pasos de ejecución}
+
+Para garantizar la verificabilidad y reproducibilidad del trabajo desarrollado, la solución planteada se apoya en una arquitectura modular compuesta por un motor de optimización en \texttt{PuLP} y una interfaz interactiva en \texttt{Streamlit}.
+
+El código fuente y las instancias de datos están alojados en un repositorio público de GitHub. La reconstrucción del entorno y la ejecución del modelo se realiza mediante los siguientes pasos:
+
+\begin{enumerate}
+    \item \textbf{Obtención del repositorio:} Clonar el proyecto o descargar la estructura de carpetas desde GitHub:
+    \begin{verbatim}
+    git clone https://github.com/nicominguez/trabajo_opti
+    cd trabajo_opti
+    \end{verbatim}
+    
+    \item \textbf{Creación del entorno e instalación de dependencias:} Se recomienda el uso de un entorno virtual para aislar las librerías necesarias:
+    \begin{verbatim}
+    python -m venv .venv
+    source .venv/bin/activate  # En Windows: .venv\Scripts\activate
+    pip install -r requirements.txt
+    \end{verbatim}
+    
+    \item \textbf{Lanzamiento de la herramienta:}
+    \begin{verbatim}
+    streamlit run streamlit_app.py
+    \end{verbatim}
+\end{enumerate}
+
+\subsection{Verificación de funcionalidades y control de inviabilidad}
+Durante el proceso de validación del software se han verificado las siguientes características del sistema:
+
+\begin{itemize}
+    \item \textbf{Control dinámico de inviabilidad:} Ante configuraciones de parámetros con restricciones contradictorias (pesos ilógicos) o presupuestos insuficientes, el motor captura el estado devuelto por el solver (\texttt{Infeasible}) y la interfaz muestra una alerta explícita indicando que \textit{``no existe una programación valida con los parámetros actuales''}, evitando fallos de ejecución o salidas incoherentes.
+    \item \textbf{Exportación de resultados:} Tras alcanzar la solución óptima, la aplicación permite descargar de forma directa dos archivos en formato CSV:
+    \begin{enumerate}
+        \item \texttt{calendario\_programacion.csv}: Matriz completa con la ocupación de los 3 espacios a lo largo de las 8 franjas horarias.
+        \item \texttt{actividades\_seleccionadas.csv}: Resumen detallado de las actividades adjudicadas con sus costes, estimación de asistencia y valoración entre otros.
+    \end{enumerate}
+    \item \textbf{Consistencia de los indicadores:} Las ejecuciones directas del script y a través de la interfaz web arrojan resultados exactos a los tabulados en el análisis de escenarios del informe (880 asistentes en el Escenario 1 y 12 actividades en los Escenarios 2 y 3).
+\end{itemize}
+
+\subsection{Conclusiones}
+La formulación de un modelo de programación lineal entera ha permitido automatizar la planificación del congreso de manera óptima, superando las limitaciones del diseño manual. El análisis comparativo demuestra la existencia de compromisos claros (\textit{trade-offs}) entre la cantidad masiva de público y la satisfacción cualitativa de los asistentes. La herramienta software desarrollada proporciona al equipo organizador un soporte cuantitativo riguroso para la toma de decisiones presupuestarias y logísticas.
+
+\subsection{Declaración del uso de inteligencia artificial}
+
+En cumplimiento de las directrices de transparencia en el uso de herramientas tecnológicas avanzadas, se declara que durante el desarrollo de este trabajo se ha contado con el apoyo de herramientas de Inteligencia Artificial Generativa (modelos de lenguaje / LLMs).
+
+\subsubsection{Ámbitos de asistencia}
+El uso de estas herramientas se ha limitado a las siguientes tareas de apoyo técnico y documental:
+\begin{itemize}
+    \item \textbf{Maquetación y formateo en \LaTeX:} Asistencia en la estructuración de ecuaciones matemáticas, tablas comparativas y organización general del documento fuente.
+    \item \textbf{Depuración de código Python:} Apoyo en la revisión sintáctica y resolución de errores puntuales en los scripts del motor de optimización (\texttt{PuLP}) y de la interfaz gráfica (\texttt{Streamlit}).
+    \item \textbf{Revisión estilística y lingüística:} Corrección ortotipográfica y refinamiento de la fluidez en la redacción de la memoria.
+\end{itemize}
+
+\subsubsection{Supervisión y autoría humana}
+Los integrantes del grupo afirman y garantizan lo siguiente:
+\begin{enumerate}
+    \item \textbf{Diseño del problema y datos:} La contextualización del evento ("Jornadas de Ciencia de Datos"), la construcción de los 7 archivos CSV de datos y la formulación rigurosa del modelo matemático (conjuntos, parámetros, variables binarias y restricciones R1 a R9) son fruto del trabajo exclusivo del equipo.
+    \item \textbf{Análisis e interpretación de resultados:} El planteamiento de las expectativas previas, la evaluación de los \textit{trade-offs} presupuestarios y las conclusiones han sido analizados y razonados críticamente por los miembros del grupo.
+    \item \textbf{Validación de contenidos:} Todo código, formulación o texto desarrollado con asistencia de IA ha sido verificado, comprobado y validado técnicamente por los autores antes de su inclusión en el informe final.
+\end{enumerate}
