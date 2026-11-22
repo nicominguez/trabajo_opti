@@ -9,3 +9,6 @@ venv/
 
 # OS/editor
 .DS_Store
+
+# GitHub Copilot generated memory
+.github/copilot-memories.jsonl

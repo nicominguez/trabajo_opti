@@ -98,6 +98,12 @@ if st.button("Resolver", type="primary"):
             table = pd.DataFrame(selected_rows)
             st.subheader("Actividades seleccionadas")
             st.dataframe(table, hide_index=True, use_container_width=True)
+            st.download_button(
+                "Descargar tabla CSV",
+                table.to_csv(index=False).encode("utf-8"),
+                file_name="actividades_seleccionadas.csv",
+                mime="text/csv",
+            )
             discarded = instance["actividades"][
                 ~instance["actividades"]["id"].isin(result["selected"])
             ][["id", "nombre", "categoria"]].rename(
