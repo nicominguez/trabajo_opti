@@ -59,50 +59,64 @@ temporal limitada y relaciones de incompatibilidad.
 
 \subsection{Formulación}
 \subsubsection{Conjuntos}
-\begin{itemize}
-\item $I=\{1,\ldots,18\}$: actividades candidatas.
-\item $E$: espacios disponibles.
-\item $T=\{1,\ldots,F\}$: franjas temporales.
-\item $O\subseteq I$: actividades obligatorias.
-\item $P$: pares $(i,j)$ de actividades incompatibles.
-\end{itemize}
+\begin{table}[H]
+\centering
+\begin{tabular}{p{0.20\textwidth}p{0.28\textwidth}p{0.42\textwidth}}
+\toprule
+\textbf{Símbolo} & \textbf{Definición} & \textbf{Significado} \\
+\midrule
+$I$ & $\{1,\ldots,18\}$ & Actividades candidatas. \\
+$E$ & --- & Espacios disponibles. \\
+$T$ & $\{1,\ldots,F\}$ & Franjas temporales. \\
+$O$ & $O\subseteq I$ & Actividades obligatorias. \\
+$P$ & --- & Pares $(i,j)$ de actividades incompatibles. \\
+\bottomrule
+\end{tabular}
+\caption{Conjuntos del modelo.}
+\end{table}
 
 \subsubsection{Parámetros}
-\begin{itemize}
-\item $d_i$: duración de la actividad $i$, en franjas.
-\item $a_i$: asistencia esperada de la actividad $i$.
-\item $v_i$: valoración de la actividad $i$.
-\item $c_i$: coste de la actividad $i$.
-\item $\mathrm{cap}_e$: capacidad del espacio $e$.
-\item $B$: presupuesto máximo.
-\item $\mathrm{comp}(i,e)=1$ si $i$ es compatible con $e$, y 0 en otro caso.
-\item $\mathrm{dispA}(i,s)=1$ si $i$ puede celebrarse en la franja $s$, y 0 en otro caso.
-\item $\mathrm{dispE}(e,s)=1$ si $e$ está abierto en la franja $s$, y 0 en otro caso.
-\item $F=8$: número de franjas.
-\item $FD=4$: número de franjas por día.
-\item $\mathrm{dia}(t)=\lceil t/FD\rceil$: día correspondiente a la franja $t$.
-\item $w_A,w_V,w_N$: pesos no negativos de los tres criterios, con suma igual a uno.
-\item $N=|I|$: número total de actividades candidatas.
-\item $A_{\mathrm{tot}}=\sum_{i\in I}a_i$: asistencia total de todas las actividades.
-\item $V_{\mathrm{tot}}=\sum_{i\in I}v_i$: valoración total de todas las actividades.
-\end{itemize}
+\begin{table}[H]
+\centering
+\begin{tabular}{p{0.20\textwidth}p{0.28\textwidth}p{0.42\textwidth}}
+\toprule
+\textbf{Símbolo} & \textbf{Definición} & \textbf{Significado} \\
+\midrule
+$d_i$ & --- & Duración de la actividad $i$, en franjas. \\
+$a_i$ & --- & Asistencia esperada de la actividad $i$. \\
+$v_i$ & --- & Valoración de la actividad $i$. \\
+$c_i$ & --- & Coste de la actividad $i$. \\
+$\mathrm{cap}_e$ & --- & Capacidad del espacio $e$. \\
+$B$ & --- & Presupuesto máximo. \\
+$\mathrm{comp}(i,e)$ & $\{0,1\}$ & Vale 1 si $i$ es compatible con $e$. \\
+$\mathrm{dispA}(i,s)$ & $\{0,1\}$ & Vale 1 si $i$ puede celebrarse en $s$. \\
+$\mathrm{dispE}(e,s)$ & $\{0,1\}$ & Vale 1 si $e$ está abierto en $s$. \\
+$F$ & $8$ & Número de franjas. \\
+$FD$ & $4$ & Número de franjas por día. \\
+$\mathrm{dia}(t)$ & $\lceil t/FD\rceil$ & Día correspondiente a la franja $t$. \\
+$w_A,w_V,w_N$ & $\geq 0$, suma 1 & Pesos de los tres criterios. \\
+$N$ & $|I|$ & Número total de actividades candidatas. \\
+$A_{\mathrm{tot}}$ & $\sum_{i\in I}a_i$ & Asistencia total de las actividades. \\
+$V_{\mathrm{tot}}$ & $\sum_{i\in I}v_i$ & Valoración total de las actividades. \\
+\bottomrule
+\end{tabular}
+\caption{Parámetros del modelo.}
+\end{table}
 
 \subsubsection{Variables}
-\[
-x_{i,e,t}=
-\begin{cases}
-1,&\text{si la actividad }i\text{ comienza en el espacio }e
-\text{ en la franja }t,\\
-0,&\text{en otro caso}.
-\end{cases}
-\]
-\[
-y_i=
-\begin{cases}
-1,&\text{si la actividad }i\text{ se programa},\\
-0,&\text{en otro caso}.
-\end{cases}
-\]
+\begin{table}[H]
+\centering
+\begin{tabular}{p{0.22\textwidth}p{0.20\textwidth}p{0.48\textwidth}}
+\toprule
+\textbf{Variable} & \textbf{Dominio} & \textbf{Interpretación} \\
+\midrule
+$x_{i,e,t}$ & $\{0,1\}$ & Vale 1 si la actividad $i$ comienza en el espacio
+$e$ en la franja $t$, y 0 en otro caso. \\
+$y_i$ & $\{0,1\}$ & Vale 1 si la actividad $i$ se programa, y 0 en otro caso. \\
+\bottomrule
+\end{tabular}
+\caption{Variables binarias del modelo.}
+\end{table}
 
 \subsubsection{Función objetivo}
 Se maximiza una suma ponderada de asistencia total, valoración total y número
@@ -149,14 +163,16 @@ y_i=1\qquad\forall i\in O.
 Una actividad solo puede comenzar en espacios técnicamente compatibles con ella.
 \[
 x_{i,e,t}=0\qquad
-\text{si }\mathrm{comp}(i,e)=0.
+\text{si }\mathrm{comp}(i,e)=0,
+\qquad\forall i\in I,\ e\in E,\ t\in T.
 \]
 
 \paragraph{R4. Capacidad suficiente.}
 La asistencia prevista no puede superar la capacidad del espacio asignado.
 \[
 x_{i,e,t}=0\qquad
-\text{si }a_i>\mathrm{cap}_e.
+\text{si }a_i>\mathrm{cap}_e,
+\qquad\forall i\in I,\ e\in E,\ t\in T.
 \]
 
 \paragraph{R5. Disponibilidad de actividad y espacio.}
@@ -165,7 +181,8 @@ La disponibilidad se exige para todas las franjas ocupadas:
 x_{i,e,t}\leq
 \mathrm{dispA}(i,s)\,\mathrm{dispE}(e,s),
 \qquad
-\forall s\in\{t,\ldots,t+d_i-1\}.
+\forall i\in I,\ e\in E,\ t\in T,
+s\in\{t,\ldots,t+d_i-1\}.
 \]
 
 \paragraph{R6. Horizonte y límite diario.}
@@ -174,7 +191,8 @@ x_{i,e,t}=0
 \quad\text{si}\quad
 t+d_i-1>F
 \quad\text{o}\quad
-\mathrm{dia}(t)\neq\mathrm{dia}(t+d_i-1).
+\mathrm{dia}(t)\neq\mathrm{dia}(t+d_i-1),
+\qquad\forall i\in I,\ e\in E,\ t\in T.
 \]
 
 \paragraph{R7. Presupuesto.}
@@ -194,6 +212,18 @@ x_{i,e,t}
 \qquad\forall e\in E,\;\forall s\in T.
 \]
 
+\subsubsection{Ampliación}
+
+Como ampliación se incorporan incompatibilidades temporales mediante R9.
+Dos actividades incompatibles pueden programarse, pero nunca simultáneamente,
+aunque estén asignadas a espacios distintos. Los pares definidos son
+$(3,10)$, $(12,16)$, $(9,17)$, $(7,18)$ y $(8,14)$.
+
+La restricción representa actividades que compiten por público o ponente y
+afecta tanto a la selección como a la asignación temporal. Por ejemplo, las
+actividades 7 y 18 solo están disponibles en la franja 7 y no pueden
+programarse conjuntamente.
+
 \paragraph{R9. Incompatibilidad entre actividades.}
 Las parejas incompatibles no pueden desarrollarse simultáneamente, aunque se
 encuentren en espacios diferentes, para evitar competir por público o ponente.
@@ -206,16 +236,4 @@ Para cada par $(i,j)\in P$ y para cada franja $s\in T$:
 \sum_{t=\max(1,s-d_j+1)}^{s}x_{j,e,t}
 \leq 1.
 \]
-
-\subsubsection{Ampliación}
-
-Como ampliación se incorporan incompatibilidades temporales mediante R9.
-Dos actividades incompatibles pueden programarse, pero nunca simultáneamente,
-aunque estén asignadas a espacios distintos. Los pares definidos son
-$(3,10)$, $(12,16)$, $(9,17)$, $(7,18)$ y $(8,14)$.
-
-La restricción representa actividades que compiten por público o ponente y
-afecta tanto a la selección como a la asignación temporal. Por ejemplo, las
-actividades 7 y 18 solo están disponibles en la franja 7 y no pueden
-programarse conjuntamente.
 
